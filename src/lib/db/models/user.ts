@@ -13,6 +13,7 @@ export interface IUser extends Document {
   reset_token_expires: Date | null;
   magic_link_token: string | null;
   magic_link_token_expires: Date | null;
+  magic_link_used: boolean;
   token_version: number;
   failed_login_attempts: number;
   lockout_until: Date | null;
@@ -42,6 +43,7 @@ const UserSchema = new Schema<IUser>(
     reset_token_expires: { type: Date, default: null },
     magic_link_token: { type: String, default: null },
     magic_link_token_expires: { type: Date, default: null },
+    magic_link_used: { type: Boolean, default: false },
     token_version: { type: Number, default: 0 },
     failed_login_attempts: { type: Number, default: 0 },
     lockout_until: { type: Date, default: null },

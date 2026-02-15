@@ -50,6 +50,42 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
   });
 }
 
+export async function sendMagicLinkEmail(to: string, token: string): Promise<void> {
+  const magicLinkUrl = `${APP_URL}/api/auth/magic-link/verify?token=${token}`;
+
+  await sendEmail({
+    to,
+    subject: 'Your DTC Dashboard login link',
+    text: `Hi,\n\nYou requested a login link for DTC Dashboard.\n\nClick here to log in:\n${magicLinkUrl}\n\nThis link expires in 15 minutes and can only be used once.\n\nIf you did not request this, you can safely ignore this email.`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+        <h1 style="font-size: 24px; font-weight: 600; color: #111; margin-bottom: 16px;">Your login link</h1>
+        <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 24px;">Click the button below to log in to DTC Dashboard. This link expires in 15 minutes and can only be used once.</p>
+        <a href="${magicLinkUrl}" style="display: inline-block; background: #4F46E5; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 16px;">Log In</a>
+        <p style="font-size: 14px; color: #888; margin-top: 32px; line-height: 1.5;">If you did not request this link, you can safely ignore this email.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
+  const resetUrl = `${APP_URL}/app/reset-password?token=${token}`;
+
+  await sendEmail({
+    to,
+    subject: 'Reset your DTC Dashboard password',
+    text: `Hi,\n\nYou requested a password reset for your DTC Dashboard account.\n\nClick here to reset your password:\n${resetUrl}\n\nThis link expires in 1 hour and can only be used once.\n\nIf you did not request this, you can safely ignore this email. Your password will not change.`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+        <h1 style="font-size: 24px; font-weight: 600; color: #111; margin-bottom: 16px;">Reset your password</h1>
+        <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 24px;">Click the button below to reset your DTC Dashboard password. This link expires in 1 hour.</p>
+        <a href="${resetUrl}" style="display: inline-block; background: #4F46E5; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 16px;">Reset Password</a>
+        <p style="font-size: 14px; color: #888; margin-top: 32px; line-height: 1.5;">If you did not request this reset, you can safely ignore this email. Your password will not change.</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   await sendEmail({
     to,

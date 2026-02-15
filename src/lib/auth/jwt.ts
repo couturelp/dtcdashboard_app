@@ -24,6 +24,7 @@ export interface TokenPayload extends JWTPayload {
   email: string;
   role: string;
   token_version: number;
+  remember_me?: boolean;
 }
 
 export async function signAccessToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): Promise<string> {
@@ -39,7 +40,7 @@ export async function signRefreshToken(
   rememberMe: boolean = false
 ): Promise<string> {
   const expiry = rememberMe ? '30d' : '7d';
-  return new SignJWT({ ...payload })
+  return new SignJWT({ ...payload, remember_me: rememberMe })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiry)
