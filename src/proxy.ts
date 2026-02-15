@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '');
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not defined');
+  }
+  return new TextEncoder().encode(secret);
+}
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ['/app', '/admin'];
@@ -48,7 +54,7 @@ export async function proxy(request: NextRequest) {
 
   // Verify the JWT
   try {
-    const { payload } = await jwtVerify(accessToken, JWT_SECRET);
+    const { payload } = await jwtVerify(accessToken, getJwtSecret());
 
     // Admin routes require admin role
     if (pathname.startsWith('/admin') && payload.role !== 'admin') {
