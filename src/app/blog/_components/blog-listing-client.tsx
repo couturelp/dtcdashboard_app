@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
 import type { BlogPostMeta } from '@/lib/blog';
 
 interface BlogListingClientProps {
@@ -14,15 +14,11 @@ const POSTS_PER_PAGE = 12;
 export function BlogListingClient({ posts, categories }: BlogListingClientProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const filtered = activeCategory
-    ? posts.filter((p) => p.category === activeCategory)
-    : posts;
+  const filtered = activeCategory ? posts.filter((p) => p.category === activeCategory) : posts;
 
   // Separate featured post (first featured post, or first post overall)
   const featuredPost = filtered.find((p) => p.featured) || filtered[0] || null;
-  const remainingPosts = featuredPost
-    ? filtered.filter((p) => p.slug !== featuredPost.slug)
-    : [];
+  const remainingPosts = featuredPost ? filtered.filter((p) => p.slug !== featuredPost.slug) : [];
 
   // Pagination: only show first page for now (pagination pages added when >12 articles exist)
   const visiblePosts = remainingPosts.slice(0, POSTS_PER_PAGE);
@@ -58,10 +54,7 @@ export function BlogListingClient({ posts, categories }: BlogListingClientProps)
 
       {/* Featured article (larger card) */}
       {featuredPost && (
-        <Link
-          href={`/blog/${featuredPost.slug}`}
-          className="block mb-12 group"
-        >
+        <Link href={`/blog/${featuredPost.slug}`} className="block mb-12 group">
           <article className="rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-lg hover:shadow-gray-100/50 transition-shadow md:grid md:grid-cols-2 md:gap-0">
             {/* Image placeholder */}
             <div className="bg-gradient-to-br from-brand-primary-light to-brand-surface-alt h-48 md:h-full flex items-center justify-center">
@@ -92,11 +85,7 @@ export function BlogListingClient({ posts, categories }: BlogListingClientProps)
       {visiblePosts.length > 0 && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {visiblePosts.map((post) => (
-            <Link
-              key={post.slug}
-              href={`/blog/${post.slug}`}
-              className="group"
-            >
+            <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
               <article className="h-full rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-lg hover:shadow-gray-100/50 transition-shadow flex flex-col">
                 {/* Image placeholder */}
                 <div className="bg-gradient-to-br from-brand-primary-light to-brand-surface-alt h-40 flex items-center justify-center">

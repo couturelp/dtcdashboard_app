@@ -36,9 +36,7 @@ export function HelpFeedback({ articleId }: HelpFeedbackProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-brand-heading">
-        Was this helpful?
-      </span>
+      <span className="text-sm font-medium text-brand-heading">Was this helpful?</span>
       <button
         onClick={() => handleFeedback(true)}
         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-brand-body hover:border-green-300 hover:text-green-600 transition-colors"

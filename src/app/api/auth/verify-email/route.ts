@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { connectDB } from '@/lib/db/mongodb';
-import User from '@/lib/db/models/user';
+import { NextRequest, NextResponse } from 'next/server';
 import { signAccessToken, signRefreshToken, setAuthCookiesOnResponse } from '@/lib/auth/jwt';
+import User from '@/lib/db/models/user';
+import { connectDB } from '@/lib/db/mongodb';
 import { sendWelcomeEmail } from '@/lib/email';
 
 export async function GET(request: NextRequest) {

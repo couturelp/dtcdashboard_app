@@ -25,10 +25,7 @@ export default getStripe;
  * Create a Stripe customer for a newly registered user.
  * Called from POST /api/auth/register after User.create().
  */
-export async function createStripeCustomer(
-  email: string,
-  userId: string
-): Promise<string | null> {
+export async function createStripeCustomer(email: string, userId: string): Promise<string | null> {
   if (!process.env.STRIPE_SECRET_KEY) {
     console.warn('[Stripe] Skipping customer creation — no API key.');
     return null;
@@ -88,10 +85,7 @@ export async function createPortalSession(params: {
  * Construct and verify a Stripe webhook event from the raw body.
  * Throws if signature verification fails.
  */
-export function constructWebhookEvent(
-  rawBody: string | Buffer,
-  signature: string
-): Stripe.Event {
+export function constructWebhookEvent(rawBody: string | Buffer, signature: string): Stripe.Event {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
     throw new Error('STRIPE_WEBHOOK_SECRET is not configured');

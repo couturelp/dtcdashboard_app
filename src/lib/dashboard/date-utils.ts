@@ -15,7 +15,7 @@ export type CompareOption = 'previous_period' | 'same_period_last_year' | 'none'
 
 export interface DateRange {
   from: string; // ISO date string YYYY-MM-DD
-  to: string;   // ISO date string YYYY-MM-DD
+  to: string; // ISO date string YYYY-MM-DD
 }
 
 export interface DateRangeWithComparison {
@@ -81,10 +81,7 @@ export function getPresetRange(preset: DatePreset, now: Date = new Date()): Date
 /**
  * Calculate the comparison period for a given date range.
  */
-export function getComparisonRange(
-  current: DateRange,
-  option: CompareOption
-): DateRange | null {
+export function getComparisonRange(current: DateRange, option: CompareOption): DateRange | null {
   if (option === 'none') return null;
 
   const fromDate = new Date(current.from + 'T00:00:00');

@@ -9,9 +9,7 @@ const FOOTER_LINKS = {
     { href: '/blog', label: 'Blog' },
     { href: '/contact', label: 'Contact' },
   ],
-  Resources: [
-    { href: '/help', label: 'Help Center' },
-  ],
+  Resources: [{ href: '/help', label: 'Help Center' }],
   Legal: [
     { href: '/terms', label: 'Terms of Service' },
     { href: '/privacy', label: 'Privacy Policy' },

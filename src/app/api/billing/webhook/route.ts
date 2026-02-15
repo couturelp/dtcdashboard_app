@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
+import type Stripe from 'stripe';
 import Subscription from '@/lib/db/models/subscription';
 import User from '@/lib/db/models/user';
+import { connectDB } from '@/lib/db/mongodb';
 import { constructWebhookEvent } from '@/lib/stripe';
-import type Stripe from 'stripe';
 
 // Track processed event IDs for idempotency (in-memory, resets on deploy)
 const processedEvents = new Set<string>();
@@ -13,10 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const signature = request.headers.get('stripe-signature');
     if (!signature) {
-      return NextResponse.json(
-        { error: 'Missing stripe-signature header.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing stripe-signature header.' }, { status: 400 });
     }
 
     const rawBody = await request.text();
@@ -74,10 +71,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('[Webhook] Processing error:', error);
-    return NextResponse.json(
-      { error: 'Webhook processing failed.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook processing failed.' }, { status: 500 });
   }
 }
 
@@ -90,14 +84,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     return;
   }
 
-  const stripeCustomerId = typeof session.customer === 'string'
-    ? session.customer
-    : session.customer.id;
+  const stripeCustomerId =
+    typeof session.customer === 'string' ? session.customer : session.customer.id;
 
   // Find the user by stripe_customer_id to get their store_id
   const user = await User.findOne({ stripe_customer_id: stripeCustomerId }).lean();
   if (!user || !user.store_id) {
-    console.warn('[Webhook] checkout.session.completed: no user/store found for customer', stripeCustomerId);
+    console.warn(
+      '[Webhook] checkout.session.completed: no user/store found for customer',
+      stripeCustomerId
+    );
     return;
   }
 
@@ -113,13 +109,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
  * Upserts the subscription record in MongoDB.
  */
 async function handleSubscriptionUpsert(sub: Stripe.Subscription): Promise<void> {
-  const stripeCustomerId = typeof sub.customer === 'string'
-    ? sub.customer
-    : sub.customer.id;
+  const stripeCustomerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
 
   const user = await User.findOne({ stripe_customer_id: stripeCustomerId }).lean();
   if (!user || !user.store_id) {
-    console.warn('[Webhook] subscription upsert: no user/store found for customer', stripeCustomerId);
+    console.warn(
+      '[Webhook] subscription upsert: no user/store found for customer',
+      stripeCustomerId
+    );
     return;
   }
 
@@ -138,9 +135,7 @@ async function handleSubscriptionUpsert(sub: Stripe.Subscription): Promise<void>
         current_period_start: firstItem
           ? new Date(firstItem.current_period_start * 1000)
           : new Date(),
-        current_period_end: firstItem
-          ? new Date(firstItem.current_period_end * 1000)
-          : new Date(),
+        current_period_end: firstItem ? new Date(firstItem.current_period_end * 1000) : new Date(),
         cancel_at_period_end: sub.cancel_at_period_end,
         canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
       },

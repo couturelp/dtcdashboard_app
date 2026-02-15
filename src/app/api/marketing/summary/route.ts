@@ -1,11 +1,11 @@
 // src/app/api/marketing/summary/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { parseDateRangeFromParams } from '@/lib/dashboard/date-utils';
+import { getStoreCurrency } from '@/lib/dashboard/summary-queries';
 import {
   fetchMarketingKpiSummary,
   type MarketingKpiSummary,
 } from '@/lib/marketing/marketing-queries';
-import { getStoreCurrency } from '@/lib/dashboard/summary-queries';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,30 +17,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { current, comparison } = parseDateRangeFromParams(
-      request.nextUrl.searchParams
-    );
+    const { current, comparison } = parseDateRangeFromParams(request.nextUrl.searchParams);
     const currency = await getStoreCurrency(storeId);
 
-    const currentKpis = await fetchMarketingKpiSummary(
-      storeId,
-      current.from,
-      current.to
-    );
+    const currentKpis = await fetchMarketingKpiSummary(storeId, current.from, current.to);
 
     let comparisonKpis: MarketingKpiSummary | null = null;
     if (comparison) {
-      comparisonKpis = await fetchMarketingKpiSummary(
-        storeId,
-        comparison.from,
-        comparison.to
-      );
+      comparisonKpis = await fetchMarketingKpiSummary(storeId, comparison.from, comparison.to);
     }
 
     const changes = comparisonKpis
       ? {
           total_ad_spend: calcChange(currentKpis.total_ad_spend, comparisonKpis.total_ad_spend),
-          total_conversions: calcChange(currentKpis.total_conversions, comparisonKpis.total_conversions),
+          total_conversions: calcChange(
+            currentKpis.total_conversions,
+            comparisonKpis.total_conversions
+          ),
           roas: calcChange(currentKpis.roas, comparisonKpis.roas),
           cpa: calcChange(currentKpis.cpa, comparisonKpis.cpa),
           ctr: currentKpis.ctr - comparisonKpis.ctr, // absolute pp change
@@ -58,10 +51,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Marketing Summary] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 

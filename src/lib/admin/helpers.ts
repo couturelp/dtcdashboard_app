@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
 import AdminAuditLog from '@/lib/db/models/admin-audit-log';
+import { connectDB } from '@/lib/db/mongodb';
 
 // ---------- Request header helpers ----------
 
@@ -14,9 +14,7 @@ export function getAdminUserId(request: NextRequest): string | null {
  * Guard for admin API routes. Returns a 403 JSON response if the caller
  * is not an admin, or the admin user ID string if authorized.
  */
-export function requireAdmin(
-  request: NextRequest
-): string | NextResponse {
+export function requireAdmin(request: NextRequest): string | NextResponse {
   const adminId = getAdminUserId(request);
   if (!adminId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -56,6 +54,9 @@ export function parsePagination(
   defaultLimit = 50
 ): PaginationParams {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || String(defaultLimit), 10)));
+  const limit = Math.min(
+    100,
+    Math.max(1, parseInt(searchParams.get('limit') || String(defaultLimit), 10))
+  );
   return { page, limit, skip: (page - 1) * limit };
 }

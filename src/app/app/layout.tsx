@@ -1,6 +1,6 @@
 // src/app/app/layout.tsx
-import { Sidebar } from './_components/sidebar';
 import { AppHeader } from './_components/app-header';
+import { Sidebar } from './_components/sidebar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

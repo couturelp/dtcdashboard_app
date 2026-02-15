@@ -33,9 +33,7 @@ export function Callout({ type = 'info', children }: CalloutProps) {
     <div className={`my-6 rounded-lg border ${style.border} ${style.bg} p-4`}>
       <div className="flex items-start gap-3">
         <span className="text-lg leading-none mt-0.5">{style.icon}</span>
-        <div className="text-sm leading-relaxed text-brand-heading [&>p]:m-0">
-          {children}
-        </div>
+        <div className="text-sm leading-relaxed text-brand-heading [&>p]:m-0">{children}</div>
       </div>
     </div>
   );

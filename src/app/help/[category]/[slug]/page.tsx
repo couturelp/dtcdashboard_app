@@ -1,20 +1,20 @@
+import GithubSlugger from 'github-slugger';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { compileMDX } from 'next-mdx-remote/rsc';
-import remarkGfm from 'remark-gfm';
-import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import GithubSlugger from 'github-slugger';
+import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
 import {
   getArticleBySlug,
   getAdjacentArticles,
   getAllArticles,
   getCategoryBySlug,
 } from '@/lib/help';
-import { HelpSidebar } from '../../_components/help-sidebar';
 import { Callout } from '../../_components/callout';
 import { HelpFeedback } from '../../_components/help-feedback';
+import { HelpSidebar } from '../../_components/help-sidebar';
 
 // -- Custom MDX components map --------------------------------
 
@@ -155,10 +155,7 @@ export default async function HelpArticlePage({
               Help Center
             </Link>
             <span>/</span>
-            <Link
-              href={`/help/${category}`}
-              className="hover:text-brand-primary transition-colors"
-            >
+            <Link href={`/help/${category}`} className="hover:text-brand-primary transition-colors">
               {cat?.name ?? category}
             </Link>
             <span>/</span>
@@ -183,9 +180,7 @@ export default async function HelpArticlePage({
                   <span className="px-2.5 py-1 rounded bg-brand-primary-light text-brand-primary text-xs font-medium">
                     {cat?.name ?? category}
                   </span>
-                  {article.lastUpdated && (
-                    <span>Updated {article.lastUpdated}</span>
-                  )}
+                  {article.lastUpdated && <span>Updated {article.lastUpdated}</span>}
                   <span>{article.readTime}</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-heading tracking-tight">
@@ -247,9 +242,7 @@ export default async function HelpArticlePage({
                         key={h.id}
                         href={`#${h.id}`}
                         className={`block text-sm transition-colors hover:text-brand-primary ${
-                          h.level === 3
-                            ? 'pl-3 text-brand-muted'
-                            : 'text-brand-body font-medium'
+                          h.level === 3 ? 'pl-3 text-brand-muted' : 'text-brand-body font-medium'
                         }`}
                       >
                         {h.text}

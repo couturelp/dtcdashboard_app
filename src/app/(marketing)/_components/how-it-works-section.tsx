@@ -2,17 +2,20 @@ const STEPS = [
   {
     number: '1',
     title: 'Connect your platforms',
-    description: 'Link your Shopify store, Meta Ads, and Google Ads through Fivetran. It takes under five minutes and requires zero technical knowledge.',
+    description:
+      'Link your Shopify store, Meta Ads, and Google Ads through Fivetran. It takes under five minutes and requires zero technical knowledge.',
   },
   {
     number: '2',
     title: 'Upload your costs',
-    description: 'Add your product costs via CSV or manual entry. Set your shipping rates and operating expenses. We handle the calculations.',
+    description:
+      'Add your product costs via CSV or manual entry. Set your shipping rates and operating expenses. We handle the calculations.',
   },
   {
     number: '3',
     title: 'See your real profit',
-    description: 'Your dashboard lights up with real-time P&L, marketing ROAS, and net profit numbers. Updated automatically as your data syncs.',
+    description:
+      'Your dashboard lights up with real-time P&L, marketing ROAS, and net profit numbers. Updated automatically as your data syncs.',
   },
 ] as const;
 

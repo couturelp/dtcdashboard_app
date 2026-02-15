@@ -24,6 +24,5 @@ const StoreSchema = new Schema<IStore>(
   }
 );
 
-const Store: Model<IStore> =
-  mongoose.models.Store || mongoose.model<IStore>('Store', StoreSchema);
+const Store: Model<IStore> = mongoose.models.Store || mongoose.model<IStore>('Store', StoreSchema);
 export default Store;

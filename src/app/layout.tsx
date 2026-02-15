@@ -17,7 +17,8 @@ export const metadata: Metadata = {
     default: 'DTC Dashboard | Profit Analytics for Ecommerce',
     template: '%s | DTC Dashboard',
   },
-  description: 'Profit analytics for ecommerce operators and DTC brands. See real profit, not just revenue.',
+  description:
+    'Profit analytics for ecommerce operators and DTC brands. See real profit, not just revenue.',
   metadataBase: new URL('https://dtcdashboard.com'),
 };
 

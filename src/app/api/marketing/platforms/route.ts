@@ -1,8 +1,8 @@
 // src/app/api/marketing/platforms/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { parseDateRangeFromParams } from '@/lib/dashboard/date-utils';
-import { fetchPlatformBreakdown } from '@/lib/marketing/marketing-queries';
 import { getStoreCurrency } from '@/lib/dashboard/summary-queries';
+import { fetchPlatformBreakdown } from '@/lib/marketing/marketing-queries';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,16 +14,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { current } = parseDateRangeFromParams(
-      request.nextUrl.searchParams
-    );
+    const { current } = parseDateRangeFromParams(request.nextUrl.searchParams);
     const currency = await getStoreCurrency(storeId);
 
-    const platforms = await fetchPlatformBreakdown(
-      storeId,
-      current.from,
-      current.to
-    );
+    const platforms = await fetchPlatformBreakdown(storeId, current.from, current.to);
 
     return NextResponse.json({
       platforms,
@@ -32,9 +26,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Marketing Platforms] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

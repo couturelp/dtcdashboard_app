@@ -9,16 +9,16 @@ export interface MarketingKpiSummary {
   total_clicks: number;
   total_conversions: number;
   total_conversion_value: number; // attributed revenue
-  roas: number;        // conversion_value / ad_spend
-  cpa: number;         // ad_spend / conversions
-  ctr: number;         // (clicks / impressions) * 100
-  cpm: number;         // (ad_spend / impressions) * 1000
-  cpc: number;         // ad_spend / clicks
+  roas: number; // conversion_value / ad_spend
+  cpa: number; // ad_spend / conversions
+  ctr: number; // (clicks / impressions) * 100
+  cpm: number; // (ad_spend / impressions) * 1000
+  cpc: number; // ad_spend / clicks
 }
 
 export interface PlatformBreakdown {
   platform: 'meta' | 'google';
-  platform_label: string;       // "Meta Ads" or "Google Ads"
+  platform_label: string; // "Meta Ads" or "Google Ads"
   spend: number;
   impressions: number;
   clicks: number;
@@ -27,7 +27,7 @@ export interface PlatformBreakdown {
   conversion_value: number;
   roas: number;
   cpa: number;
-  spend_percentage: number;     // percentage of total spend
+  spend_percentage: number; // percentage of total spend
   has_data: boolean;
 }
 

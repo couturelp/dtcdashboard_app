@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
 import User from '@/lib/db/models/user';
+import { connectDB } from '@/lib/db/mongodb';
 import { createPortalSession } from '@/lib/stripe';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -33,9 +33,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ portalUrl });
   } catch (error) {
     console.error('[Billing Portal] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

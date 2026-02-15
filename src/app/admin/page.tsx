@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 
 interface Customer {
   user_id: string;
@@ -37,13 +37,17 @@ const COLUMNS = [
 ] as const;
 
 // Status badge component
-function StatusBadge({ status, colorMap }: { status: string | null; colorMap: Record<string, string> }) {
+function StatusBadge({
+  status,
+  colorMap,
+}: {
+  status: string | null;
+  colorMap: Record<string, string>;
+}) {
   const label = status || 'None';
   const color = colorMap[status || 'none'] || 'bg-gray-100 text-gray-600';
   return (
-    <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${color}`}>
-      {label}
-    </span>
+    <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${color}`}>{label}</span>
   );
 }
 
@@ -66,8 +70,17 @@ const DB_COLORS: Record<string, string> = {
 export default function AdminCustomersPage() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [summary, setSummary] = useState<Summary>({ totalCustomers: 0, activeSubscribers: 0, totalDatabases: 0 });
-  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 50, totalItems: 0, totalPages: 0 });
+  const [summary, setSummary] = useState<Summary>({
+    totalCustomers: 0,
+    activeSubscribers: 0,
+    totalDatabases: 0,
+  });
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 50,
+    totalItems: 0,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('signup_date');
@@ -101,9 +114,12 @@ export default function AdminCustomersPage() {
   }, [page, sort, dir, search, filterTier, filterDbStatus]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchCustomers();
-    }, search ? 300 : 0);
+    const timer = setTimeout(
+      () => {
+        fetchCustomers();
+      },
+      search ? 300 : 0
+    );
     return () => clearTimeout(timer);
   }, [fetchCustomers, search]);
 
@@ -143,12 +159,18 @@ export default function AdminCustomersPage() {
           type="text"
           placeholder="Search by email or store name..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="border rounded px-3 py-2 flex-1 text-sm"
         />
         <select
           value={filterTier}
-          onChange={(e) => { setFilterTier(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setFilterTier(e.target.value);
+            setPage(1);
+          }}
           className="border rounded px-3 py-2 text-sm"
         >
           <option value="">All Tiers</option>
@@ -157,7 +179,10 @@ export default function AdminCustomersPage() {
         </select>
         <select
           value={filterDbStatus}
-          onChange={(e) => { setFilterDbStatus(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setFilterDbStatus(e.target.value);
+            setPage(1);
+          }}
           className="border rounded px-3 py-2 text-sm"
         >
           <option value="">All DB Status</option>
@@ -181,9 +206,7 @@ export default function AdminCustomersPage() {
                   className="text-left px-4 py-3 font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                 >
                   {col.label}
-                  {sort === col.key && (
-                    <span className="ml-1">{dir === 'asc' ? '▲' : '▼'}</span>
-                  )}
+                  {sort === col.key && <span className="ml-1">{dir === 'asc' ? '▲' : '▼'}</span>}
                 </th>
               ))}
             </tr>

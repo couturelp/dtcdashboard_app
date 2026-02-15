@@ -23,14 +23,11 @@ export function MarketingKpiSummary() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `/api/marketing/summary?${searchParams.toString()}`,
-          { signal: controller.signal }
-        );
+        const res = await fetch(`/api/marketing/summary?${searchParams.toString()}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) {
-          throw new Error(
-            (await res.json().catch(() => ({}))).error || `HTTP ${res.status}`
-          );
+          throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
         }
         setData(await res.json());
       } catch (err) {

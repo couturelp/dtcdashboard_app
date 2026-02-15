@@ -14,8 +14,7 @@ export default function BlogListingPage() {
             Blog
           </h1>
           <p className="mt-4 text-lg text-brand-body">
-            Insights on ecommerce profitability, marketing analytics, and growing
-            your DTC brand.
+            Insights on ecommerce profitability, marketing analytics, and growing your DTC brand.
           </p>
         </div>
 

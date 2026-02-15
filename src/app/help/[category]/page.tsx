@@ -65,9 +65,7 @@ export default async function HelpCategoryPage({
           <div>
             <div className="mb-8">
               <span className="text-3xl">{cat.icon}</span>
-              <h1 className="mt-3 text-3xl font-extrabold text-brand-heading">
-                {cat.name}
-              </h1>
+              <h1 className="mt-3 text-3xl font-extrabold text-brand-heading">{cat.name}</h1>
               <p className="mt-2 text-brand-body">{cat.description}</p>
             </div>
 
@@ -86,16 +84,12 @@ export default async function HelpCategoryPage({
                     <p className="mt-1 text-sm text-brand-body line-clamp-2">
                       {article.description}
                     </p>
-                    <p className="mt-2 text-xs text-brand-muted">
-                      {article.readTime}
-                    </p>
+                    <p className="mt-2 text-xs text-brand-muted">{article.readTime}</p>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-brand-muted">
-                No articles in this category yet.
-              </p>
+              <p className="text-brand-muted">No articles in this category yet.</p>
             )}
           </div>
         </div>

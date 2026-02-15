@@ -8,8 +8,8 @@ export function FinalCtaSection() {
           Your revenue means nothing if you do not know your profit
         </h2>
         <p className="mt-6 text-lg text-white/80 max-w-xl mx-auto">
-          Join hundreds of DTC brands that stopped guessing and started
-          growing with real profit data. Set up in minutes, not days.
+          Join hundreds of DTC brands that stopped guessing and started growing with real profit
+          data. Set up in minutes, not days.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link

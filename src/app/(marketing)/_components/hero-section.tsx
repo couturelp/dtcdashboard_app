@@ -6,15 +6,15 @@ export function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-brand-heading tracking-tight leading-[1.1]">
-            Stop guessing.<br />
+            Stop guessing.
+            <br />
             <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
               See your real profit.
             </span>
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-brand-body max-w-2xl mx-auto leading-relaxed">
-            DTC Dashboard connects your Shopify store and ad accounts, factors in
-            every cost, and shows you exactly where your money goes. Revenue is
-            vanity. Profit is sanity.
+            DTC Dashboard connects your Shopify store and ad accounts, factors in every cost, and
+            shows you exactly where your money goes. Revenue is vanity. Profit is sanity.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -49,9 +49,14 @@ export function HeroSection() {
                   { label: 'Net Profit', value: '$12,847' },
                   { label: 'Margin', value: '26.6%' },
                 ].map((kpi) => (
-                  <div key={kpi.label} className="rounded-lg border border-gray-200 bg-white p-4 text-center">
+                  <div
+                    key={kpi.label}
+                    className="rounded-lg border border-gray-200 bg-white p-4 text-center"
+                  >
                     <p className="text-xs text-brand-muted uppercase tracking-wide">{kpi.label}</p>
-                    <p className="mt-1 text-xl font-bold text-brand-heading font-mono tabular-nums">{kpi.value}</p>
+                    <p className="mt-1 text-xl font-bold text-brand-heading font-mono tabular-nums">
+                      {kpi.value}
+                    </p>
                   </div>
                 ))}
               </div>

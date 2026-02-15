@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
-import User from '@/lib/db/models/user';
-import Store from '@/lib/db/models/store';
-import TenantDatabase from '@/lib/db/models/tenant-database';
-import Subscription from '@/lib/db/models/subscription';
 import { requireAdmin, parsePagination } from '@/lib/admin/helpers';
+import Store from '@/lib/db/models/store';
+import Subscription from '@/lib/db/models/subscription';
+import TenantDatabase from '@/lib/db/models/tenant-database';
+import User from '@/lib/db/models/user';
+import { connectDB } from '@/lib/db/mongodb';
 
 interface CustomerRow {
   user_id: string;
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim() || '';
     const sortField = searchParams.get('sort') || 'signup_date';
     const sortDir = searchParams.get('dir') === 'asc' ? 1 : -1;
-    const filterTier = searchParams.get('tier');       // 'free' | 'paid'
+    const filterTier = searchParams.get('tier'); // 'free' | 'paid'
     const filterDbStatus = searchParams.get('db_status'); // 'active' | 'provisioning' | 'error' | 'deleting' | 'none'
 
     // --- Build user query with search ---
@@ -38,9 +38,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       // Escape special regex characters to prevent regex injection
       const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      userQuery.$or = [
-        { email: { $regex: escapedSearch, $options: 'i' } },
-      ];
+      userQuery.$or = [{ email: { $regex: escapedSearch, $options: 'i' } }];
     }
 
     // --- Fetch all non-admin users matching search ---
@@ -80,7 +78,9 @@ export async function GET(request: NextRequest) {
 
     // --- Summary stats (computed BEFORE search/filter so they reflect totals) ---
     const totalCustomers = rows.length;
-    const activeSubscribers = rows.filter((r) => r.subscription_status === 'active' || r.subscription_status === 'trialing').length;
+    const activeSubscribers = rows.filter(
+      (r) => r.subscription_status === 'active' || r.subscription_status === 'trialing'
+    ).length;
     const totalDatabases = rows.filter((r) => r.db_status === 'active').length;
 
     // --- Search by store name (post-join filter) ---
@@ -94,9 +94,17 @@ export async function GET(request: NextRequest) {
 
     // --- Apply filters ---
     if (filterTier === 'paid') {
-      rows = rows.filter((r) => r.subscription_status && !['canceled', 'incomplete_expired', 'unpaid', 'paused'].includes(r.subscription_status));
+      rows = rows.filter(
+        (r) =>
+          r.subscription_status &&
+          !['canceled', 'incomplete_expired', 'unpaid', 'paused'].includes(r.subscription_status)
+      );
     } else if (filterTier === 'free') {
-      rows = rows.filter((r) => !r.subscription_status || ['canceled', 'incomplete_expired', 'unpaid', 'paused'].includes(r.subscription_status));
+      rows = rows.filter(
+        (r) =>
+          !r.subscription_status ||
+          ['canceled', 'incomplete_expired', 'unpaid', 'paused'].includes(r.subscription_status)
+      );
     }
 
     if (filterDbStatus === 'none') {
@@ -110,11 +118,25 @@ export async function GET(request: NextRequest) {
       let aVal: string | null = '';
       let bVal: string | null = '';
       switch (sortField) {
-        case 'email': aVal = a.email; bVal = b.email; break;
-        case 'store_name': aVal = a.store_name; bVal = b.store_name; break;
-        case 'subscription_status': aVal = a.subscription_status; bVal = b.subscription_status; break;
-        case 'db_status': aVal = a.db_status; bVal = b.db_status; break;
-        default: aVal = a.signup_date; bVal = b.signup_date;
+        case 'email':
+          aVal = a.email;
+          bVal = b.email;
+          break;
+        case 'store_name':
+          aVal = a.store_name;
+          bVal = b.store_name;
+          break;
+        case 'subscription_status':
+          aVal = a.subscription_status;
+          bVal = b.subscription_status;
+          break;
+        case 'db_status':
+          aVal = a.db_status;
+          bVal = b.db_status;
+          break;
+        default:
+          aVal = a.signup_date;
+          bVal = b.signup_date;
       }
       return (aVal || '').localeCompare(bVal || '') * sortDir;
     });
@@ -126,7 +148,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       customers: paginatedRows,
       summary: { totalCustomers, activeSubscribers, totalDatabases },
-      pagination: { page, limit, totalItems: filteredCount, totalPages: Math.ceil(filteredCount / limit) },
+      pagination: {
+        page,
+        limit,
+        totalItems: filteredCount,
+        totalPages: Math.ceil(filteredCount / limit),
+      },
     });
   } catch (error) {
     console.error('[Admin Customers GET]', error);

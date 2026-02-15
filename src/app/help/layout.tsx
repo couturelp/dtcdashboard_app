@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { MarketingHeader } from '../(marketing)/_components/marketing-header';
 import { MarketingFooter } from '../(marketing)/_components/marketing-footer';
+import { MarketingHeader } from '../(marketing)/_components/marketing-header';
 
 export const metadata: Metadata = {
   title: 'Help Center',

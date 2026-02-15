@@ -1,14 +1,22 @@
 // src/app/api/costs/custom/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
+import {
+  isPositiveAmount,
+  isValidCurrency,
+  isValidCategory,
+  isValidDate,
+} from '@/lib/costs/validation';
 import CustomExpense from '@/lib/db/models/custom-expense';
-import { isPositiveAmount, isValidCurrency, isValidCategory, isValidDate } from '@/lib/costs/validation';
+import { connectDB } from '@/lib/db/mongodb';
 
 export async function GET(request: NextRequest) {
   try {
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
-      return NextResponse.json({ error: 'Store not set up. Please complete store setup first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Store not set up. Please complete store setup first.' },
+        { status: 400 }
+      );
     }
 
     const { searchParams } = request.nextUrl;
@@ -30,9 +38,7 @@ export async function GET(request: NextRequest) {
       filter.expense_date = dateFilter;
     }
 
-    const expenses = await CustomExpense.find(filter)
-      .sort({ expense_date: -1 })
-      .lean();
+    const expenses = await CustomExpense.find(filter).sort({ expense_date: -1 }).lean();
 
     return NextResponse.json({ expenses });
   } catch (error) {
@@ -45,7 +51,10 @@ export async function POST(request: NextRequest) {
   try {
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
-      return NextResponse.json({ error: 'Store not set up. Please complete store setup first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Store not set up. Please complete store setup first.' },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();

@@ -1,19 +1,24 @@
 // src/app/api/costs/custom/[id]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
-import CustomExpense from '@/lib/db/models/custom-expense';
 import mongoose from 'mongoose';
-import { isPositiveAmount, isValidCurrency, isValidCategory, isValidDate } from '@/lib/costs/validation';
+import { NextRequest, NextResponse } from 'next/server';
+import {
+  isPositiveAmount,
+  isValidCurrency,
+  isValidCategory,
+  isValidDate,
+} from '@/lib/costs/validation';
+import CustomExpense from '@/lib/db/models/custom-expense';
+import { connectDB } from '@/lib/db/mongodb';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
-      return NextResponse.json({ error: 'Store not set up. Please complete store setup first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Store not set up. Please complete store setup first.' },
+        { status: 400 }
+      );
     }
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid expense ID.' }, { status: 400 });
@@ -83,7 +88,10 @@ export async function DELETE(
     const { id } = await params;
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
-      return NextResponse.json({ error: 'Store not set up. Please complete store setup first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Store not set up. Please complete store setup first.' },
+        { status: 400 }
+      );
     }
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid expense ID.' }, { status: 400 });

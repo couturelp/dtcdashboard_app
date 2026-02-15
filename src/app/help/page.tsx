@@ -13,8 +13,7 @@ export default function HelpCenterPage() {
             Help Center
           </h1>
           <p className="mt-4 text-lg text-brand-body">
-            Find answers to common questions, setup guides, and
-            troubleshooting tips.
+            Find answers to common questions, setup guides, and troubleshooting tips.
           </p>
         </div>
 
@@ -30,9 +29,7 @@ export default function HelpCenterPage() {
               <h2 className="mt-4 text-lg font-bold text-brand-heading group-hover:text-brand-primary transition-colors">
                 {cat.name}
               </h2>
-              <p className="mt-2 text-sm text-brand-body leading-relaxed">
-                {cat.description}
-              </p>
+              <p className="mt-2 text-sm text-brand-body leading-relaxed">{cat.description}</p>
               <p className="mt-3 text-xs text-brand-muted">
                 {cat.articleCount} {cat.articleCount === 1 ? 'article' : 'articles'}
               </p>

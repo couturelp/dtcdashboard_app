@@ -67,6 +67,5 @@ const SubscriptionSchema = new Schema<ISubscription>(
 // No additional .index() call needed — unique constraint creates a unique index automatically.
 
 const Subscription: Model<ISubscription> =
-  mongoose.models.Subscription ||
-  mongoose.model<ISubscription>('Subscription', SubscriptionSchema);
+  mongoose.models.Subscription || mongoose.model<ISubscription>('Subscription', SubscriptionSchema);
 export default Subscription;

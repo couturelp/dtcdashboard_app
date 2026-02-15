@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { connectDB } from '@/lib/db/mongodb';
-import User from '@/lib/db/models/user';
+import { NextRequest, NextResponse } from 'next/server';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/passwords';
+import User from '@/lib/db/models/user';
+import { connectDB } from '@/lib/db/mongodb';
 import { sendVerificationEmail } from '@/lib/email';
 import { createStripeCustomer } from '@/lib/stripe';
 
@@ -46,10 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
     // Validate email format
@@ -93,15 +90,9 @@ export async function POST(request: NextRequest) {
 
     // Create Stripe customer (non-blocking — registration succeeds even if Stripe fails)
     try {
-      const stripeCustomerId = await createStripeCustomer(
-        email.toLowerCase(),
-        user._id.toString()
-      );
+      const stripeCustomerId = await createStripeCustomer(email.toLowerCase(), user._id.toString());
       if (stripeCustomerId) {
-        await User.updateOne(
-          { _id: user._id },
-          { $set: { stripe_customer_id: stripeCustomerId } }
-        );
+        await User.updateOne({ _id: user._id }, { $set: { stripe_customer_id: stripeCustomerId } });
       }
     } catch (stripeError) {
       console.error('[Register] Stripe customer creation failed:', stripeError);

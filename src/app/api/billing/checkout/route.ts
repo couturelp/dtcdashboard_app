@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
 import User from '@/lib/db/models/user';
+import { connectDB } from '@/lib/db/mongodb';
 import { createCheckoutSession, createStripeCustomer } from '@/lib/stripe';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -16,10 +16,7 @@ export async function POST(request: NextRequest) {
     const { priceId } = body as { priceId?: string };
 
     if (!priceId || typeof priceId !== 'string') {
-      return NextResponse.json(
-        { error: 'priceId is required.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'priceId is required.' }, { status: 400 });
     }
 
     await connectDB();
@@ -33,10 +30,7 @@ export async function POST(request: NextRequest) {
     if (!stripeCustomerId) {
       stripeCustomerId = await createStripeCustomer(user.email, user._id.toString());
       if (stripeCustomerId) {
-        await User.updateOne(
-          { _id: user._id },
-          { $set: { stripe_customer_id: stripeCustomerId } }
-        );
+        await User.updateOne({ _id: user._id }, { $set: { stripe_customer_id: stripeCustomerId } });
       } else {
         return NextResponse.json(
           { error: 'Unable to create billing account. Please try again.' },
@@ -55,9 +49,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ checkoutUrl });
   } catch (error) {
     console.error('[Billing Checkout] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

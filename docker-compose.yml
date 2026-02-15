@@ -1,0 +1,29 @@
+# Local development databases
+# Usage: docker compose up -d
+# Then set MONGODB_URI=mongodb://localhost:27017/dtcdashboard in your .env
+# and RDS_MASTER_HOST=localhost in your .env
+
+services:
+  mongodb:
+    image: mongo:7
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  postgres_data:

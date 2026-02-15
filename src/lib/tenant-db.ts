@@ -1,9 +1,9 @@
-import { Pool, PoolConfig } from 'pg';
 import crypto from 'crypto';
-import { connectDB } from '@/lib/db/mongodb';
+import { Pool, PoolConfig } from 'pg';
+import { encrypt, decrypt } from '@/lib/crypto';
 import TenantDatabase from '@/lib/db/models/tenant-database';
 import type { ITenantDatabase } from '@/lib/db/models/tenant-database';
-import { encrypt, decrypt } from '@/lib/crypto';
+import { connectDB } from '@/lib/db/mongodb';
 
 // ----- Connection pool cache -----
 // Cache tenant connection pools on globalThis (survives Next.js HMR like MongoDB cache)
@@ -220,8 +220,7 @@ export async function deleteTenantDatabase(storeId: string): Promise<void> {
     await TenantDatabase.deleteOne({ _id: tenantRecord._id });
   } catch (error) {
     tenantRecord.status = 'error';
-    tenantRecord.error_message =
-      error instanceof Error ? error.message : 'Unknown deletion error';
+    tenantRecord.error_message = error instanceof Error ? error.message : 'Unknown deletion error';
     await tenantRecord.save();
     throw error;
   }

@@ -2,17 +2,20 @@ const PAIN_POINTS = [
   {
     icon: '📊',
     title: 'Revenue looks great, but where did the money go?',
-    description: 'Shopify shows revenue, not profit. Without factoring in COGS, shipping, transaction fees, and ad spend, you are flying blind.',
+    description:
+      'Shopify shows revenue, not profit. Without factoring in COGS, shipping, transaction fees, and ad spend, you are flying blind.',
   },
   {
     icon: '🔀',
     title: 'Data scattered across five different platforms',
-    description: 'Your Shopify admin, Meta Ads manager, Google Ads dashboard, and spreadsheets all tell a different story. None of them show the full picture.',
+    description:
+      'Your Shopify admin, Meta Ads manager, Google Ads dashboard, and spreadsheets all tell a different story. None of them show the full picture.',
   },
   {
     icon: '⏳',
     title: 'Hours wasted on manual spreadsheets every week',
-    description: 'Pulling exports, copying numbers, building formulas that break. You started a brand to build products, not pivot tables.',
+    description:
+      'Pulling exports, copying numbers, building formulas that break. You started a brand to build products, not pivot tables.',
   },
 ] as const;
 
@@ -50,9 +53,9 @@ export function ProblemSolutionSection() {
             One dashboard. Every cost. Real profit.
           </h2>
           <p className="mt-4 text-lg text-brand-body">
-            DTC Dashboard pulls your Shopify orders, ad spend from Meta and Google,
-            and combines them with your product costs, shipping, and expenses to show
-            you the numbers that actually matter.
+            DTC Dashboard pulls your Shopify orders, ad spend from Meta and Google, and combines
+            them with your product costs, shipping, and expenses to show you the numbers that
+            actually matter.
           </p>
         </div>
       </div>

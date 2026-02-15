@@ -1,14 +1,17 @@
 // src/app/api/costs/shipping/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db/mongodb';
-import ShippingRate from '@/lib/db/models/shipping-rate';
 import { isPositiveAmount, isValidCurrency, isValidRateType } from '@/lib/costs/validation';
+import ShippingRate from '@/lib/db/models/shipping-rate';
+import { connectDB } from '@/lib/db/mongodb';
 
 export async function GET(request: NextRequest) {
   try {
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
-      return NextResponse.json({ error: 'Store not set up. Please complete store setup first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Store not set up. Please complete store setup first.' },
+        { status: 400 }
+      );
     }
 
     await connectDB();
@@ -37,7 +40,10 @@ export async function PUT(request: NextRequest) {
   try {
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
-      return NextResponse.json({ error: 'Store not set up. Please complete store setup first.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Store not set up. Please complete store setup first.' },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -53,7 +59,10 @@ export async function PUT(request: NextRequest) {
     // rate_value required for non-shopify_default types
     if (rate_type !== 'shopify_default') {
       if (!isPositiveAmount(rate_value)) {
-        return NextResponse.json({ error: 'rate_value must be a positive number.' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'rate_value must be a positive number.' },
+          { status: 400 }
+        );
       }
     }
 

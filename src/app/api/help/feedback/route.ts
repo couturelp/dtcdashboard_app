@@ -6,10 +6,7 @@ export async function POST(request: Request) {
     const { articleId, helpful } = body;
 
     if (!articleId || typeof helpful !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Missing articleId or helpful field' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing articleId or helpful field' }, { status: 400 });
     }
 
     // For MVP, log to console. In production, store in MongoDB:
@@ -18,9 +15,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json(
-      { error: 'Invalid request body' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 }

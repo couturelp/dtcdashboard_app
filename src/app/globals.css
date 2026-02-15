@@ -10,27 +10,27 @@
 /* Brand palette — light blue / purple-mint fintech aesthetic */
 :root {
   /* Primary: deep indigo-blue for CTAs and headings */
-  --brand-primary: #4f46e5;       /* indigo-600 */
+  --brand-primary: #4f46e5; /* indigo-600 */
   --brand-primary-hover: #4338ca; /* indigo-700 */
   --brand-primary-light: #eef2ff; /* indigo-50 */
 
   /* Accent: purple-mint gradient endpoints */
-  --brand-accent: #7c3aed;       /* violet-600 */
-  --brand-mint: #2dd4bf;         /* teal-400 */
+  --brand-accent: #7c3aed; /* violet-600 */
+  --brand-mint: #2dd4bf; /* teal-400 */
 
   /* Semantic: profit/loss, alerts */
-  --brand-success: #059669;      /* emerald-600, positive profit */
-  --brand-danger: #dc2626;       /* red-600, negative profit / losses */
-  --brand-warning: #d97706;      /* amber-600, alerts */
+  --brand-success: #059669; /* emerald-600, positive profit */
+  --brand-danger: #dc2626; /* red-600, negative profit / losses */
+  --brand-warning: #d97706; /* amber-600, alerts */
 
   /* Surfaces */
-  --brand-surface: #f8fafc;      /* slate-50, section backgrounds */
-  --brand-surface-alt: #f0f4ff;  /* blue-tinted section backgrounds */
+  --brand-surface: #f8fafc; /* slate-50, section backgrounds */
+  --brand-surface-alt: #f0f4ff; /* blue-tinted section backgrounds */
 
   /* Text */
-  --brand-heading: #0f172a;      /* slate-900 */
-  --brand-body: #475569;         /* slate-600 */
-  --brand-muted: #64748b;        /* slate-500, meets WCAG AA on white */
+  --brand-heading: #0f172a; /* slate-900 */
+  --brand-body: #475569; /* slate-600 */
+  --brand-muted: #64748b; /* slate-500, meets WCAG AA on white */
 }
 
 @theme inline {

@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
       ? {
           total_revenue: calcChange(currentKpis.total_revenue, comparisonKpis.total_revenue),
           total_orders: calcChange(currentKpis.total_orders, comparisonKpis.total_orders),
-          average_order_value: calcChange(currentKpis.average_order_value, comparisonKpis.average_order_value),
+          average_order_value: calcChange(
+            currentKpis.average_order_value,
+            comparisonKpis.average_order_value
+          ),
           gross_profit: calcChange(currentKpis.gross_profit, comparisonKpis.gross_profit),
           net_profit: calcChange(currentKpis.net_profit, comparisonKpis.net_profit),
           profit_margin: currentKpis.profit_margin - comparisonKpis.profit_margin, // absolute pp change

@@ -152,9 +152,7 @@ export function getArticleBySlug(categorySlug: string, slug: string): HelpArticl
     title: data.title || '',
     description: data.description || '',
     order: typeof data.order === 'number' ? data.order : 99,
-    lastUpdated: data.lastUpdated
-      ? new Date(data.lastUpdated).toISOString().split('T')[0]
-      : '',
+    lastUpdated: data.lastUpdated ? new Date(data.lastUpdated).toISOString().split('T')[0] : '',
     readTime: `${Math.ceil(stats.minutes)} min read`,
     content,
   };
@@ -195,9 +193,7 @@ function getArticleMeta(categorySlug: string, slug: string): HelpArticleMeta | n
     title: data.title || '',
     description: data.description || '',
     order: typeof data.order === 'number' ? data.order : 99,
-    lastUpdated: data.lastUpdated
-      ? new Date(data.lastUpdated).toISOString().split('T')[0]
-      : '',
+    lastUpdated: data.lastUpdated ? new Date(data.lastUpdated).toISOString().split('T')[0] : '',
     readTime: `${Math.ceil(stats.minutes)} min read`,
   };
 }

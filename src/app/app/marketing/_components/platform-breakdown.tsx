@@ -36,14 +36,11 @@ export function PlatformBreakdown() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(
-          `/api/marketing/platforms?${searchParams.toString()}`,
-          { signal: controller.signal }
-        );
+        const res = await fetch(`/api/marketing/platforms?${searchParams.toString()}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) {
-          throw new Error(
-            (await res.json().catch(() => ({}))).error || `HTTP ${res.status}`
-          );
+          throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
         }
         setData(await res.json());
       } catch (err) {
@@ -65,8 +62,7 @@ export function PlatformBreakdown() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(v);
-  const fmtNum = (v: number) =>
-    new Intl.NumberFormat('en-US').format(Math.round(v));
+  const fmtNum = (v: number) => new Intl.NumberFormat('en-US').format(Math.round(v));
 
   if (error) {
     return (
@@ -94,9 +90,7 @@ export function PlatformBreakdown() {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-900">
-          Platform Breakdown
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900">Platform Breakdown</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -142,15 +136,13 @@ export function PlatformBreakdown() {
               >
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full"
+                    <span
+                      className="inline-block w-2 h-2 rounded-full"
                       style={{
-                        backgroundColor:
-                          p.platform === 'meta' ? '#1877F2' : '#4285F4',
+                        backgroundColor: p.platform === 'meta' ? '#1877F2' : '#4285F4',
                       }}
                     />
-                    <span className="font-medium text-gray-900">
-                      {p.platform_label}
-                    </span>
+                    <span className="font-medium text-gray-900">{p.platform_label}</span>
                     {!p.has_data && (
                       <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
                         Not connected
@@ -192,8 +184,8 @@ export function PlatformBreakdown() {
       </div>
       {platforms.every((p) => !p.has_data) && (
         <div className="px-6 py-8 text-center text-sm text-gray-500">
-          No ad platform data available. Connect your Meta Ads or Google Ads
-          through Fivetran to see performance data.
+          No ad platform data available. Connect your Meta Ads or Google Ads through Fivetran to see
+          performance data.
         </div>
       )}
     </div>

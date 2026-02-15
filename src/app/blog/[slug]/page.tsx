@@ -1,11 +1,11 @@
+import GithubSlugger from 'github-slugger';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { compileMDX } from 'next-mdx-remote/rsc';
-import remarkGfm from 'remark-gfm';
-import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import GithubSlugger from 'github-slugger';
+import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
 import { getPostBySlug, getRelatedPosts, getAllPosts } from '@/lib/blog';
 import { ShareButtons } from '../_components/share-buttons';
 
@@ -68,11 +68,7 @@ function extractHeadings(mdxContent: string): TocItem[] {
 
 // -- Page component -------------------------------------------
 
-export default async function BlogPostPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
 
@@ -153,12 +149,10 @@ export default async function BlogPostPage({
                     <span className="text-white font-bold text-sm">DTC</span>
                   </div>
                   <div>
-                    <p className="font-semibold text-brand-heading">
-                      {post.author}
-                    </p>
+                    <p className="font-semibold text-brand-heading">{post.author}</p>
                     <p className="text-sm text-brand-muted">
-                      Writing about ecommerce profitability, marketing analytics,
-                      and the metrics that matter for DTC brands.
+                      Writing about ecommerce profitability, marketing analytics, and the metrics
+                      that matter for DTC brands.
                     </p>
                   </div>
                 </div>
@@ -166,20 +160,15 @@ export default async function BlogPostPage({
 
               {/* Social share */}
               <div className="mt-8 pt-8 border-t border-gray-200">
-                <p className="text-sm font-semibold text-brand-heading mb-4">
-                  Share this article
-                </p>
+                <p className="text-sm font-semibold text-brand-heading mb-4">Share this article</p>
                 <ShareButtons title={post.title} slug={slug} />
               </div>
 
               {/* CTA banner */}
               <div className="mt-12 rounded-xl bg-gradient-to-br from-brand-primary to-brand-accent p-8 text-center">
-                <h3 className="text-xl font-bold text-white">
-                  Ready to see your real profit?
-                </h3>
+                <h3 className="text-xl font-bold text-white">Ready to see your real profit?</h3>
                 <p className="mt-2 text-white/80 text-sm">
-                  Connect your Shopify store and ad accounts. See exactly where
-                  your money goes.
+                  Connect your Shopify store and ad accounts. See exactly where your money goes.
                 </p>
                 <Link
                   href="/app/register"
@@ -203,9 +192,7 @@ export default async function BlogPostPage({
                         key={h.id}
                         href={`#${h.id}`}
                         className={`block text-sm transition-colors hover:text-brand-primary ${
-                          h.level === 3
-                            ? 'pl-4 text-brand-muted'
-                            : 'text-brand-body font-medium'
+                          h.level === 3 ? 'pl-4 text-brand-muted' : 'text-brand-body font-medium'
                         }`}
                       >
                         {h.text}
@@ -220,16 +207,10 @@ export default async function BlogPostPage({
           {/* Related articles */}
           {relatedPosts.length > 0 && (
             <section className="mt-16 pt-12 border-t border-gray-200 max-w-5xl mx-auto">
-              <h2 className="text-2xl font-bold text-brand-heading mb-8">
-                Related Articles
-              </h2>
+              <h2 className="text-2xl font-bold text-brand-heading mb-8">Related Articles</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {relatedPosts.map((rp) => (
-                  <Link
-                    key={rp.slug}
-                    href={`/blog/${rp.slug}`}
-                    className="group"
-                  >
+                  <Link key={rp.slug} href={`/blog/${rp.slug}`} className="group">
                     <article className="rounded-xl border border-gray-100 bg-white overflow-hidden hover:shadow-lg hover:shadow-gray-100/50 transition-shadow">
                       <div className="bg-gradient-to-br from-brand-primary-light to-brand-surface-alt h-32 flex items-center justify-center">
                         <span className="text-2xl font-bold text-brand-primary/20">
@@ -237,9 +218,7 @@ export default async function BlogPostPage({
                         </span>
                       </div>
                       <div className="p-5">
-                        <p className="text-xs text-brand-muted mb-2">
-                          {rp.readTime}
-                        </p>
+                        <p className="text-xs text-brand-muted mb-2">{rp.readTime}</p>
                         <h3 className="text-base font-bold text-brand-heading group-hover:text-brand-primary transition-colors">
                           {rp.title}
                         </h3>

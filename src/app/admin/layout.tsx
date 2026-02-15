@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  function isActive(item: typeof NAV_ITEMS[number]) {
+  function isActive(item: (typeof NAV_ITEMS)[number]) {
     if (item.exact) {
       return pathname === item.href || pathname.startsWith('/admin/customer');
     }

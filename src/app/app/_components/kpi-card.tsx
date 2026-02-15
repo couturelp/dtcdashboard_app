@@ -25,9 +25,7 @@ export function KpiCard({ label, value, change, prefix, suffix, loading }: KpiCa
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-        {label}
-      </p>
+      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{label}</p>
       <p className="text-2xl font-bold text-gray-900 font-mono tabular-nums">
         {prefix}
         {value}
@@ -37,16 +35,11 @@ export function KpiCard({ label, value, change, prefix, suffix, loading }: KpiCa
         <div className="flex items-center gap-1 mt-2">
           <span
             className={`text-xs font-medium ${
-              isPositive
-                ? 'text-emerald-600'
-                : isNegative
-                  ? 'text-red-600'
-                  : 'text-gray-500'
+              isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
             }`}
           >
-            {isPositive ? '\u25B2' : isNegative ? '\u25BC' : '\u2014'}
-            {' '}
-            {Math.abs(change).toFixed(1)}%
+            {isPositive ? '\u25B2' : isNegative ? '\u25BC' : '\u2014'} {Math.abs(change).toFixed(1)}
+            %
           </span>
           <span className="text-xs text-gray-400">vs prior period</span>
         </div>
