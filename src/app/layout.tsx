@@ -13,8 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'DTC Dashboard',
-  description: 'Profit analytics for ecommerce operators and DTC brands.',
+  title: {
+    default: 'DTC Dashboard | Profit Analytics for Ecommerce',
+    template: '%s | DTC Dashboard',
+  },
+  description: 'Profit analytics for ecommerce operators and DTC brands. See real profit, not just revenue.',
+  metadataBase: new URL('https://dtcdashboard.com'),
 };
 
 export default function RootLayout({

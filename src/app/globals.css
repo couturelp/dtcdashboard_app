@@ -5,18 +5,42 @@
   --foreground: #171717;
 }
 
+/* Brand palette — light blue / purple-mint fintech aesthetic */
+:root {
+  /* Primary: deep indigo-blue for CTAs and headings */
+  --brand-primary: #4f46e5;       /* indigo-600 */
+  --brand-primary-hover: #4338ca; /* indigo-700 */
+  --brand-primary-light: #eef2ff; /* indigo-50 */
+
+  /* Accent: purple-mint gradient endpoints */
+  --brand-accent: #7c3aed;       /* violet-600 */
+  --brand-mint: #2dd4bf;         /* teal-400 */
+
+  /* Surfaces */
+  --brand-surface: #f8fafc;      /* slate-50, section backgrounds */
+  --brand-surface-alt: #f0f4ff;  /* blue-tinted section backgrounds */
+
+  /* Text */
+  --brand-heading: #0f172a;      /* slate-900 */
+  --brand-body: #475569;         /* slate-600 */
+  --brand-muted: #94a3b8;        /* slate-400 */
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-primary-light: var(--brand-primary-light);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-mint: var(--brand-mint);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-surface-alt: var(--brand-surface-alt);
+  --color-brand-heading: var(--brand-heading);
+  --color-brand-body: var(--brand-body);
+  --color-brand-muted: var(--brand-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
