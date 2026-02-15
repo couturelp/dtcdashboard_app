@@ -1,19 +1,27 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import { MarketingHeader } from '../(marketing)/_components/marketing-header';
+import { MarketingFooter } from '../(marketing)/_components/marketing-footer';
+
+export const metadata: Metadata = {
+  title: 'Help Center',
+  description:
+    'Find answers to common questions about DTC Dashboard. Setup guides, feature documentation, and troubleshooting.',
+  openGraph: {
+    title: 'Help Center | DTC Dashboard',
+    description:
+      'Find answers to common questions about DTC Dashboard. Setup guides, feature documentation, and troubleshooting.',
+    url: 'https://dtcdashboard.com/help',
+    siteName: 'DTC Dashboard',
+    type: 'website',
+  },
+};
 
 export default function HelpLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b">
-        <nav className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="font-bold text-xl">
-            DTC Dashboard
-          </Link>
-          <Link href="/help" className="text-sm font-medium">
-            Help Center
-          </Link>
-        </nav>
-      </header>
-      <main className="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">{children}</main>
+      <MarketingHeader />
+      <main className="flex-1">{children}</main>
+      <MarketingFooter />
     </div>
   );
 }

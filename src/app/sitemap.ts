@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllPosts } from '@/lib/blog';
+import { getAllArticles as getAllHelpArticles } from '@/lib/help';
 
 const BASE_URL = 'https://dtcdashboard.com';
 
@@ -26,7 +27,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...marketingPages, ...blogPages].map((page) => ({
+  // Dynamic help article URLs
+  const helpArticles = getAllHelpArticles();
+  const helpPages = helpArticles.map((article) => ({
+    path: `/help/${article.category}/${article.slug}`,
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }));
+
+  return [...marketingPages, ...blogPages, ...helpPages].map((page) => ({
     url: `${BASE_URL}${page.path}`,
     lastModified: now,
     changeFrequency: page.changeFrequency,
