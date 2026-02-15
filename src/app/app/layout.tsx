@@ -1,30 +1,17 @@
-import Link from 'next/link';
+// src/app/app/layout.tsx
+import { Sidebar } from './_components/sidebar';
+import { AppHeader } from './_components/app-header';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-64 border-r bg-gray-50 p-4">
-        <div className="font-bold text-lg mb-6">DTC Dashboard</div>
-        <nav className="space-y-2">
-          <Link href="/app" className="block px-3 py-2 rounded hover:bg-gray-100">
-            Overview
-          </Link>
-          <Link href="/app/marketing" className="block px-3 py-2 rounded hover:bg-gray-100">
-            Marketing
-          </Link>
-          <Link href="/app/costs" className="block px-3 py-2 rounded hover:bg-gray-100">
-            Costs
-          </Link>
-          <Link href="/app/export" className="block px-3 py-2 rounded hover:bg-gray-100">
-            Export
-          </Link>
-          <Link href="/app/settings" className="block px-3 py-2 rounded hover:bg-gray-100">
-            Settings
-          </Link>
-        </nav>
-        {/* Auth guard will be added in auth task */}
-      </aside>
-      <main className="flex-1 p-6">{children}</main>
+    <div className="min-h-screen flex bg-gray-50/50">
+      <Sidebar />
+      <div className="flex-1 md:ml-0">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <AppHeader />
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
