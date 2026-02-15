@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db/mongodb';
 import User from '@/lib/db/models/user';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/passwords';
 import { sendVerificationEmail } from '@/lib/email';
+import { createStripeCustomer } from '@/lib/stripe';
 
 // Simple in-memory rate limiter (per PRD: 5 attempts per IP per hour)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -82,13 +83,30 @@ export async function POST(request: NextRequest) {
     const password_hash = await hashPassword(password);
 
     // Create user
-    await User.create({
+    const user = await User.create({
       email: email.toLowerCase(),
       password_hash,
       name: name || '',
       verification_token: hashedToken,
       verification_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     });
+
+    // Create Stripe customer (non-blocking — registration succeeds even if Stripe fails)
+    try {
+      const stripeCustomerId = await createStripeCustomer(
+        email.toLowerCase(),
+        user._id.toString()
+      );
+      if (stripeCustomerId) {
+        await User.updateOne(
+          { _id: user._id },
+          { $set: { stripe_customer_id: stripeCustomerId } }
+        );
+      }
+    } catch (stripeError) {
+      console.error('[Register] Stripe customer creation failed:', stripeError);
+      // Don't fail registration if Stripe is unavailable
+    }
 
     // Send verification email (with raw token — not hashed)
     await sendVerificationEmail(email.toLowerCase(), rawToken);

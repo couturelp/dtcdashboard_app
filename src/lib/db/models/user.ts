@@ -17,6 +17,7 @@ export interface IUser extends Document {
   failed_login_attempts: number;
   lockout_until: Date | null;
   store_id: mongoose.Types.ObjectId | null;
+  stripe_customer_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -45,6 +46,7 @@ const UserSchema = new Schema<IUser>(
     failed_login_attempts: { type: Number, default: 0 },
     lockout_until: { type: Date, default: null },
     store_id: { type: Schema.Types.ObjectId, ref: 'Store', default: null },
+    stripe_customer_id: { type: String, default: null, unique: true, sparse: true },
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },

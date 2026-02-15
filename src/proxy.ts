@@ -8,7 +8,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '');
 const PROTECTED_ROUTES = ['/app', '/admin'];
 
 // API routes that don't require authentication
-const PUBLIC_API_ROUTES = ['/api/auth', '/api/health'];
+const PUBLIC_API_ROUTES = ['/api/auth', '/api/health', '/api/billing/webhook'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -69,5 +69,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/admin/:path*', '/api/((?!auth|health).*)'],
+  matcher: ['/app/:path*', '/admin/:path*', '/api/((?!auth|health|billing/webhook).*)'],
 };
