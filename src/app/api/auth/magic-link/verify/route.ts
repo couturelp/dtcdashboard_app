@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
     // Hash the raw token to compare with stored hashed token
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    // Find user with matching, non-expired, non-used magic link token (atomic)
+    // Find user with matching, non-expired, non-used magic link token (atomic).
+    // Also clears the token fields, resets login lockout, and verifies email in one operation.
     const user = await User.findOneAndUpdate(
       {
         magic_link_token: hashedToken,
@@ -31,8 +32,11 @@ export async function GET(request: NextRequest) {
       {
         $set: {
           magic_link_used: true,
-          // Also verify email if not already verified
           email_verified: true,
+          magic_link_token: null,
+          magic_link_token_expires: null,
+          failed_login_attempts: 0,
+          lockout_until: null,
         },
       },
       { new: true }
@@ -56,25 +60,6 @@ export async function GET(request: NextRequest) {
 
     const accessToken = await signAccessToken(tokenPayload);
     const refreshToken = await signRefreshToken(tokenPayload, false);
-
-    // Clear magic link token fields
-    await User.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          magic_link_token: null,
-          magic_link_token_expires: null,
-        },
-      }
-    );
-
-    // Reset failed login attempts if any
-    if (user.failed_login_attempts > 0 || user.lockout_until) {
-      await User.updateOne(
-        { _id: user._id },
-        { $set: { failed_login_attempts: 0, lockout_until: null } }
-      );
-    }
 
     // Redirect to dashboard with auth cookies
     const redirectUrl = user.store_id

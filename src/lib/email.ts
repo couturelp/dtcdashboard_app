@@ -9,6 +9,16 @@ if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
 }
 
+/** Escape HTML special characters to prevent injection in email templates. */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 interface SendEmailParams {
   to: string;
   subject: string;
@@ -87,13 +97,15 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
 }
 
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
+  const safeName = escapeHtml(name || 'there');
+
   await sendEmail({
     to,
     subject: 'Welcome to DTC Dashboard',
     text: `Hi ${name || 'there'},\n\nYour DTC Dashboard account is now active. You can start by setting up your store and connecting your data sources.\n\nLog in at: ${APP_URL}/app\n\nBest,\nThe DTC Dashboard Team`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px;">
-        <h1 style="font-size: 24px; font-weight: 600; color: #111; margin-bottom: 16px;">You're all set, ${name || 'there'}!</h1>
+        <h1 style="font-size: 24px; font-weight: 600; color: #111; margin-bottom: 16px;">You're all set, ${safeName}!</h1>
         <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 24px;">Your DTC Dashboard account is now active. Start by setting up your store and connecting your data sources.</p>
         <a href="${APP_URL}/app" style="display: inline-block; background: #4F46E5; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 16px;">Go to Dashboard</a>
       </div>
