@@ -28,7 +28,7 @@ export function KpiCard({ label, value, change, prefix, suffix, loading }: KpiCa
       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
         {label}
       </p>
-      <p className="text-2xl font-bold text-gray-900">
+      <p className="text-2xl font-bold text-gray-900 font-mono tabular-nums">
         {prefix}
         {value}
         {suffix}

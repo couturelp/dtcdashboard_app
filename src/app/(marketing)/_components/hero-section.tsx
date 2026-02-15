@@ -51,7 +51,7 @@ export function HeroSection() {
                 ].map((kpi) => (
                   <div key={kpi.label} className="rounded-lg border border-gray-200 bg-white p-4 text-center">
                     <p className="text-xs text-brand-muted uppercase tracking-wide">{kpi.label}</p>
-                    <p className="mt-1 text-xl font-bold text-brand-heading">{kpi.value}</p>
+                    <p className="mt-1 text-xl font-bold text-brand-heading font-mono tabular-nums">{kpi.value}</p>
                   </div>
                 ))}
               </div>

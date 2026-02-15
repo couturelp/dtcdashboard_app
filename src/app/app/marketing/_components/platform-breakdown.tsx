@@ -158,31 +158,31 @@ export function PlatformBreakdown() {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-right text-gray-900 font-medium">
+                <td className="px-4 py-3 text-right text-gray-900 font-medium font-mono tabular-nums">
                   {fmtCur(p.spend)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {p.spend_percentage.toFixed(1)}%
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {fmtNum(p.impressions)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {fmtNum(p.clicks)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {p.ctr.toFixed(2)}%
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {fmtNum(p.conversions)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {fmtCur(p.conversion_value)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-900 font-medium">
+                <td className="px-4 py-3 text-right text-gray-900 font-medium font-mono tabular-nums">
                   {p.roas.toFixed(2)}x
                 </td>
-                <td className="px-4 py-3 text-right text-gray-600">
+                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
                   {fmtCur(p.cpa)}
                 </td>
               </tr>

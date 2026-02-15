@@ -76,7 +76,7 @@ export function Sidebar() {
                 transition-colors duration-150
                 ${
                   isActive(item.href)
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-brand-primary-light text-brand-primary'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }
               `}

@@ -59,7 +59,7 @@ export function DateRangePicker() {
               px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
               ${
                 dateRange.preset === preset
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-brand-primary text-white'
                   : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
               }
             `}

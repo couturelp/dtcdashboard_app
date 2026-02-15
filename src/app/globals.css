@@ -18,6 +18,11 @@
   --brand-accent: #7c3aed;       /* violet-600 */
   --brand-mint: #2dd4bf;         /* teal-400 */
 
+  /* Semantic: profit/loss, alerts */
+  --brand-success: #059669;      /* emerald-600, positive profit */
+  --brand-danger: #dc2626;       /* red-600, negative profit / losses */
+  --brand-warning: #d97706;      /* amber-600, alerts */
+
   /* Surfaces */
   --brand-surface: #f8fafc;      /* slate-50, section backgrounds */
   --brand-surface-alt: #f0f4ff;  /* blue-tinted section backgrounds */
@@ -25,7 +30,7 @@
   /* Text */
   --brand-heading: #0f172a;      /* slate-900 */
   --brand-body: #475569;         /* slate-600 */
-  --brand-muted: #94a3b8;        /* slate-400 */
+  --brand-muted: #64748b;        /* slate-500, meets WCAG AA on white */
 }
 
 @theme inline {
@@ -36,6 +41,9 @@
   --color-brand-primary-light: var(--brand-primary-light);
   --color-brand-accent: var(--brand-accent);
   --color-brand-mint: var(--brand-mint);
+  --color-brand-success: var(--brand-success);
+  --color-brand-danger: var(--brand-danger);
+  --color-brand-warning: var(--brand-warning);
   --color-brand-surface: var(--brand-surface);
   --color-brand-surface-alt: var(--brand-surface-alt);
   --color-brand-heading: var(--brand-heading);
