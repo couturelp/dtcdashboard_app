@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { getAllPosts } from '@/lib/blog';
 
 const BASE_URL = 'https://dtcdashboard.com';
 
@@ -17,7 +18,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/privacy', changeFrequency: 'yearly' as const, priority: 0.3 },
   ];
 
-  return marketingPages.map((page) => ({
+  // Dynamic blog article URLs
+  const posts = getAllPosts();
+  const blogPages = posts.map((post) => ({
+    path: `/blog/${post.slug}`,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
+  return [...marketingPages, ...blogPages].map((page) => ({
     url: `${BASE_URL}${page.path}`,
     lastModified: now,
     changeFrequency: page.changeFrequency,
