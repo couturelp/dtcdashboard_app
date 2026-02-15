@@ -5,6 +5,21 @@ import TenantDatabase from '@/lib/db/models/tenant-database';
 import type { ITenantDatabase } from '@/lib/db/models/tenant-database';
 import { connectDB } from '@/lib/db/mongodb';
 
+// ----- Input validation -----
+
+/**
+ * Validate that a string is safe for use in SQL identifiers.
+ * Accepts only alphanumeric characters and underscores.
+ * This prevents SQL injection when identifiers are interpolated into queries.
+ */
+function validateSqlIdentifier(value: string, label: string): void {
+  if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+    throw new Error(
+      `Invalid ${label}: contains characters not allowed in SQL identifiers. Expected only alphanumeric and underscore.`
+    );
+  }
+}
+
 // ----- Connection pool cache -----
 // Cache tenant connection pools on globalThis (survives Next.js HMR like MongoDB cache)
 interface TenantPoolEntry {
@@ -76,6 +91,9 @@ function getMasterPool(): Pool {
 // ----- Provisioning -----
 
 export async function provisionTenantDatabase(storeId: string): Promise<ITenantDatabase> {
+  // Validate storeId before using it in SQL identifiers to prevent injection
+  validateSqlIdentifier(storeId, 'storeId');
+
   await connectDB();
 
   // Check if already provisioned
@@ -141,17 +159,30 @@ export async function provisionTenantDatabase(storeId: string): Promise<ITenantD
     const dbCheck = await master.query(`SELECT 1 FROM pg_database WHERE datname = $1`, [dbName]);
 
     if (dbCheck.rowCount === 0) {
-      // Use quoted identifiers to prevent SQL injection on the DB name
-      await master.query(`CREATE DATABASE "${dbName}" OWNER "${process.env.RDS_MASTER_USER}"`);
+      const masterUser = process.env.RDS_MASTER_USER || '';
+      validateSqlIdentifier(masterUser, 'RDS_MASTER_USER');
+      await master.query(`CREATE DATABASE "${dbName}" OWNER "${masterUser}"`);
     }
 
-    // Grant privileges
+    // Grant privileges on the tenant database
     await master.query(`GRANT ALL PRIVILEGES ON DATABASE "${dbName}" TO "${username}"`);
 
-    // Connect to the new tenant database to set schema-level grants
+    // Revoke default public CONNECT privilege on other databases.
+    // By default, PostgreSQL grants CONNECT to the "public" role on all databases,
+    // which means any login role can connect to any database. Revoking CONNECT
+    // from the tenant user on the main/default databases ensures tenant isolation.
+    try {
+      await master.query(`REVOKE ALL ON DATABASE postgres FROM "${username}"`);
+    } catch {
+      // May fail if already revoked or insufficient privileges — non-fatal
+    }
+
+    // Connect to the new tenant database to set schema-level grants.
+    // Use max 1 connection since this is a temporary pool for two quick grants.
     const tenantMasterPool = new Pool({
       ...getMasterPoolConfig(),
       database: dbName,
+      max: 1,
     });
 
     try {
@@ -199,6 +230,11 @@ export async function deleteTenantDatabase(storeId: string): Promise<void> {
   try {
     const dbName = tenantRecord.database_name;
     const username = tenantRecord.fivetran_username;
+
+    // Validate values from DB before interpolating into SQL to prevent injection
+    // if the MongoDB record was somehow tampered with
+    validateSqlIdentifier(dbName, 'database_name');
+    validateSqlIdentifier(username, 'fivetran_username');
 
     // Terminate active connections to the tenant database
     await master.query(
@@ -331,6 +367,9 @@ export async function rotateTenantPassword(storeId: string): Promise<string> {
     throw new Error(`No active tenant database found for store ${storeId}`);
   }
 
+  // Validate username from DB before interpolating into SQL
+  validateSqlIdentifier(tenantRecord.fivetran_username, 'fivetran_username');
+
   const newPassword = crypto.randomBytes(24).toString('base64url');
   const encryptedPassword = encrypt(newPassword);
 
@@ -371,6 +410,11 @@ export async function testTenantConnection(storeId: string): Promise<boolean> {
     database: credentials.database,
     max: 1,
     connectionTimeoutMillis: 10_000,
+  });
+
+  // Handle idle client errors to prevent unhandled 'error' event crashing the process
+  testPool.on('error', (err) => {
+    console.error(`[TenantDB] Test pool error for store ${storeId}:`, err.message);
   });
 
   try {
