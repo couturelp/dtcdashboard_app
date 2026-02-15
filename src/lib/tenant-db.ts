@@ -56,13 +56,19 @@ function getMasterPoolConfig(): PoolConfig {
     database: 'postgres', // connect to default DB for admin operations
     max: 3,
     idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
   };
 }
 
 // Single master pool, cached on globalThis to survive HMR
 function getMasterPool(): Pool {
   if (!globalThis.rdsMasterPool) {
-    globalThis.rdsMasterPool = new Pool(getMasterPoolConfig());
+    const pool = new Pool(getMasterPoolConfig());
+    // Handle background errors on idle clients to prevent process crash
+    pool.on('error', (err) => {
+      console.error('[TenantDB] Master pool idle client error:', err.message);
+    });
+    globalThis.rdsMasterPool = pool;
   }
   return globalThis.rdsMasterPool;
 }
@@ -243,6 +249,12 @@ export function getTenantConnection(
     database: dbName,
     max: 5,
     idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
+  });
+
+  // Handle background errors on idle clients to prevent process crash
+  pool.on('error', (err) => {
+    console.error(`[TenantDB] Idle client error for store ${storeId}:`, err.message);
   });
 
   pools.set(storeId, { pool, lastUsed: Date.now() });
