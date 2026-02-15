@@ -9,7 +9,7 @@ import { createStripeCustomer } from '@/lib/stripe';
 // Simple in-memory rate limiter (per PRD: 5 attempts per IP per hour)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
-function checkRateLimit(ip: string): boolean {
+function checkRateLimit(ip: string): { allowed: boolean; retryAfterSeconds?: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
 
@@ -22,25 +22,37 @@ function checkRateLimit(ip: string): boolean {
 
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + 60 * 60 * 1000 });
-    return true;
+    return { allowed: true };
   }
 
   if (entry.count >= 5) {
-    return false;
+    const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000);
+    return { allowed: false, retryAfterSeconds };
   }
 
   entry.count++;
-  return true;
+  return { allowed: true };
 }
 
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    if (!checkRateLimit(ip)) {
+    // Prefer x-real-ip (set by Vercel/trusted proxies), fall back to the rightmost
+    // x-forwarded-for entry (added by the trusted proxy, not spoofable by the client).
+    // The leftmost x-forwarded-for value is client-supplied and trivially spoofable.
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ip =
+      request.headers.get('x-real-ip')?.trim() ||
+      (forwardedFor ? forwardedFor.split(',').pop()?.trim() : undefined) ||
+      'unknown';
+    const rateCheck = checkRateLimit(ip);
+    if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: 'Too many registration attempts. Please try again later.' },
-        { status: 429 }
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateCheck.retryAfterSeconds ?? 3600) },
+        }
       );
     }
 
