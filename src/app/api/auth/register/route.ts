@@ -13,6 +13,13 @@ function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
 
+  // Clean up stale entries periodically to prevent memory leak
+  if (rateLimitMap.size > 10000) {
+    for (const [key, val] of rateLimitMap) {
+      if (now > val.resetAt) rateLimitMap.delete(key);
+    }
+  }
+
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + 60 * 60 * 1000 });
     return true;
@@ -100,7 +107,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Send verification email (with raw token — not hashed)
-    await sendVerificationEmail(email.toLowerCase(), rawToken);
+    // Wrapped in try/catch so that a SendGrid failure doesn't return 500
+    // while the user record already exists in the database.
+    try {
+      await sendVerificationEmail(email.toLowerCase(), rawToken);
+    } catch (emailError) {
+      console.error('[Register] Failed to send verification email:', emailError);
+      // User is created — they can request a new verification email later.
+      // Still return 201 so the client knows the account was created.
+    }
 
     return NextResponse.json(
       { message: 'Registration successful. Please check your email to verify your account.' },
