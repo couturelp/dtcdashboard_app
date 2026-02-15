@@ -7,11 +7,20 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '');
 // Routes that require authentication
 const PROTECTED_ROUTES = ['/app', '/admin'];
 
+// Page routes under protected areas that should remain public (e.g., login/register)
+const PUBLIC_PAGE_ROUTES = ['/app/login', '/app/register'];
+
 // API routes that don't require authentication
 const PUBLIC_API_ROUTES = ['/api/auth', '/api/health', '/api/billing/webhook'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Allow public page routes that live under protected prefixes (e.g., /app/login)
+  const isPublicPage = PUBLIC_PAGE_ROUTES.some((route) => pathname === route);
+  if (isPublicPage) {
+    return NextResponse.next();
+  }
 
   // Check if this is a protected page route
   const isProtectedPage = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
