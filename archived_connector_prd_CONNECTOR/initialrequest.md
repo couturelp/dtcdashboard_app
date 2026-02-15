@@ -1,0 +1,20 @@
+What we want to build is:::
+
+A light MVP but complete enough with account management, full payment support, and includes everything (all features) that beprofit has on the Overview section of the dashboard, actually everything on the dashboard page. We also need the marketing section of BeProfit (in term of feature set, similarly arranged, but all things that should be renamed to not be an exact copy should be renamed).
+
+In term of integration, we need at the verify minimum Shopify, Facebook, Google (ads and analytics) We should also have “upload custome variable liek product costs, fulffilment / shipping cost, operation expenses and other expenses.  We would upload them simply via spreadsheet or manual input.  
+
+To clarify further, we do not need
+
+We don’t need “BE PROFIT PRICING FEATURE” or “BE PROFIT - PROFIT SIMULATOR”. 
+
+We don’t need UTM ATTRIBUTION either.
+We don’t need BeProfit Profit Insights
+We don’t need the Cohort Analysis.
+
+
+BUT the goal of this task here is :
+
+Okay. So look at all this MVP that we're trying to build, and then you can also find detail about the product, about what is included in these different sections. And we don't really want to do the whole official meta integration because that's a lot of work. So we would rather integrate through a third party that allows us to connect. So, basically, instead of going and creating a Meta app and registering with Meta and then creating a Google app and registering with Google, unless it's very simple and there's no approval process, we would rather have another product that is fairly cheap that, you know, connects already nicely to Meta, to Shopify, to Google, ideally, and that would then make all that data available to us through API keys. Right? So instead of having to build these integration, we'd like to rely on another product as a pass through. We would like to make sure that this other product is, you know, proven, has been used, has really, really clear documentation, is trustworthy, it's stable, all that. So we'll want to do a pretty deep research about what's the best option here. And so the the task here is to define, to understand what is included in our MVP, what data we need to connect to, and what what we need to get in order to build the MVP that we stated. And then to look online, search hard, explore, read articles, read blogs, read documentations, etcetera, etcetera, and until you can find, the best, you know, third party platform that we will use to integrate and then get that data probably in real time and all the different data that we need to get from Shopify to Google Ads to, to Facebook Ads to, Google AdWords to yeah. All that all that stuff. Probably Google Analytics as well. All these different things that you will see that we might need. And, also, that's gonna be the main research, and that's what we wanna sort first. We're not planning the whole build of the MVP yet. We're looking at identifying which one or two, whatever platforms we're gonna use and the cost associated with them and so on. And, that's the that's the goal of this one.
+
+SO TO CLARIFY. Look at at our files in dtcdashboard_app/casestudy which is the result of a research we did earlier (no need to read al the files, only look for what you need) and also read initialrequest.md and then make your plan by using your skill agent-browser in order to be able to access the web and find those ideal solutions third party to facilitated those connections, with stability, good documentation, ease of use, and pricing effiency too as the main aspects, and how easy it will be to build and connect to those (and connect those to their services) - our app later will be built with a node js backend, react frontend. So for now, go ahead and create PDF (read prd/INFO.md) to plan your RESEARCH PRD on that topic, and lets call that a "connectorResearch" phase. and detail the different research and etc we need in there and mention which skills we need to use in there and so on. Go ahead, work step by step, create all the detailed_prd_part_XX.md needed and the overall-summary.md for this phase please, in the prd folder.
