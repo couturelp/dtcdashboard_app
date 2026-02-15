@@ -64,14 +64,21 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/app', request.url));
     }
 
-    // Inject user info into request headers for API routes
-    const response = NextResponse.next();
-    response.headers.set('x-user-id', payload.user_id as string);
-    response.headers.set('x-store-id', (payload.store_id as string) || '');
-    response.headers.set('x-user-email', payload.email as string);
-    response.headers.set('x-user-role', payload.role as string);
+    // Inject user info into request headers so API route handlers can read them.
+    // Must use NextResponse.next({ request: { headers } }) to modify the
+    // *request* forwarded to the route handler — setting headers on the
+    // response object only affects the response sent back to the client.
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', payload.user_id as string);
+    requestHeaders.set('x-store-id', (payload.store_id as string) || '');
+    requestHeaders.set('x-user-email', payload.email as string);
+    requestHeaders.set('x-user-role', payload.role as string);
 
-    return response;
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   } catch {
     // Token expired or invalid
     if (isProtectedPage) {
