@@ -9,7 +9,16 @@ interface BillingStatus {
     status: string;
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
+    price: number | null;
+    currency: string | null;
+    interval: 'month' | 'year' | null;
+    paymentMethodLast4: string | null;
+    paymentMethodBrand: string | null;
   } | null;
+  usage?: {
+    dataSourcesUsed: number;
+    dataSourcesMax: number; // -1 = unlimited
+  };
 }
 
 type LoadingState = 'loading' | 'loaded' | 'error';
@@ -73,13 +82,30 @@ export function BillingSection() {
       })
     : null;
 
+  // Format price for display (e.g., "$29.00/month")
+  const formattedPrice = (() => {
+    const sub = billing.subscription;
+    if (!sub?.price || !sub.currency) return null;
+    const amount = (sub.price / 100).toFixed(2);
+    const symbol = sub.currency.toUpperCase() === 'USD' ? '$' : sub.currency.toUpperCase() + ' ';
+    const cycle = sub.interval === 'year' ? '/year' : '/month';
+    return `${symbol}${amount}${cycle}`;
+  })();
+
+  const billingCycleLabel = billing.subscription?.interval === 'year' ? 'Annual' : billing.subscription?.interval === 'month' ? 'Monthly' : null;
+
   return (
     <div className="space-y-4">
       {/* Current plan */}
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-700">Current Plan</p>
-          <p className="text-lg font-semibold text-gray-900">{billing.planName}</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {billing.planName}
+            {formattedPrice && (
+              <span className="ml-2 text-base font-normal text-gray-500">{formattedPrice}</span>
+            )}
+          </p>
         </div>
         {hasSubscription && statusLabel && (
           <span
@@ -101,6 +127,9 @@ export function BillingSection() {
       {/* Billing details */}
       {hasSubscription && (
         <div className="text-sm text-gray-600 space-y-1">
+          {billingCycleLabel && (
+            <p>Billing cycle: {billingCycleLabel}</p>
+          )}
           {nextBillingDate && !billing.subscription!.cancelAtPeriodEnd && (
             <p>Next billing date: {nextBillingDate}</p>
           )}
@@ -109,6 +138,34 @@ export function BillingSection() {
               Cancels on {nextBillingDate}. You retain access until then.
             </p>
           )}
+          {billing.subscription!.paymentMethodLast4 && (
+            <p>
+              Payment method: {billing.subscription!.paymentMethodBrand
+                ? `${billing.subscription!.paymentMethodBrand.charAt(0).toUpperCase()}${billing.subscription!.paymentMethodBrand.slice(1)}`
+                : 'Card'}{' '}
+              ending in {billing.subscription!.paymentMethodLast4}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Usage */}
+      {billing.usage && (
+        <div className="text-sm text-gray-600">
+          <p className="font-medium text-gray-700 mb-1">Usage</p>
+          <p>
+            Data sources: {billing.usage.dataSourcesUsed} of{' '}
+            {billing.usage.dataSourcesMax === -1 ? 'Unlimited' : billing.usage.dataSourcesMax}
+          </p>
+          {billing.usage.dataSourcesMax !== -1 &&
+            billing.usage.dataSourcesUsed >= billing.usage.dataSourcesMax && (
+              <p className="text-amber-600 mt-1">
+                You have reached your data source limit.{' '}
+                {!hasSubscription || billing.tier !== 'enterprise' ? (
+                  <a href="/pricing" className="underline hover:text-amber-700">Upgrade</a>
+                ) : null}
+              </p>
+            )}
         </div>
       )}
 

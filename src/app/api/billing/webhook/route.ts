@@ -5,6 +5,7 @@ import User from '@/lib/db/models/user';
 import { connectDB } from '@/lib/db/mongodb';
 import { sendPaymentFailedEmail } from '@/lib/email';
 import { constructWebhookEvent } from '@/lib/stripe';
+import { invalidateBillingCache } from '@/app/api/billing/status/route';
 
 // Track processed event IDs for idempotency (in-memory, resets on deploy)
 const processedEvents = new Set<string>();
@@ -163,6 +164,9 @@ async function handleSubscriptionUpsert(sub: Stripe.Subscription): Promise<void>
     { upsert: true, new: true }
   );
 
+  // Invalidate cached billing details so the settings page reflects the change immediately
+  invalidateBillingCache(user.store_id.toString());
+
   console.log(
     `[Webhook] Subscription ${sub.id} upserted: status=${sub.status}, store=${user.store_id}`
   );
@@ -172,7 +176,7 @@ async function handleSubscriptionUpsert(sub: Stripe.Subscription): Promise<void>
  * Handle customer.subscription.deleted — mark subscription as canceled.
  */
 async function handleSubscriptionDeleted(sub: Stripe.Subscription): Promise<void> {
-  await Subscription.findOneAndUpdate(
+  const updated = await Subscription.findOneAndUpdate(
     { stripe_subscription_id: sub.id },
     {
       $set: {
@@ -183,6 +187,11 @@ async function handleSubscriptionDeleted(sub: Stripe.Subscription): Promise<void
       },
     }
   );
+
+  // Invalidate cached billing details for the affected store
+  if (updated?.store_id) {
+    invalidateBillingCache(updated.store_id.toString());
+  }
 
   console.log(`[Webhook] Subscription ${sub.id} marked as canceled`);
 }
