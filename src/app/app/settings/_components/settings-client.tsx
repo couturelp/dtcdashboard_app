@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 import { PasswordForm } from './password-form';
 import { StoreForm } from './store-form';
+import { BillingSection } from './billing-section';
 
 interface ProfileData {
   name: string;
@@ -157,6 +158,19 @@ export function SettingsClient() {
               initialTimezone={store.timezone}
             />
           )}
+        </div>
+      </section>
+
+      {/* Billing Section */}
+      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
+          <h2 className="text-lg font-semibold text-gray-900">Billing</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage your subscription and billing details.
+          </p>
+        </div>
+        <div className="px-4 py-5 sm:px-6">
+          <BillingSection />
         </div>
       </section>
     </div>
