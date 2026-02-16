@@ -72,8 +72,19 @@ export function MarketingKpiSummary() {
     tooltip?: string;
     invertChange?: boolean;
   }[] = [
-    { label: 'Total Ad Spend', key: 'total_ad_spend', fmt: fmtCur, invertChange: true },
-    { label: 'Conversions', key: 'total_conversions', fmt: fmtNum },
+    {
+      label: 'Total Ad Spend',
+      key: 'total_ad_spend',
+      fmt: fmtCur,
+      invertChange: true,
+      tooltip: 'Total amount spent across all connected ad platforms',
+    },
+    {
+      label: 'Conversions',
+      key: 'total_conversions',
+      fmt: fmtNum,
+      tooltip: 'Total purchases attributed to your ad campaigns',
+    },
     {
       label: 'ROAS',
       key: 'roas',
@@ -117,6 +128,7 @@ export function MarketingKpiSummary() {
             suffix={kpi.suffix}
             loading={loading}
             invertChange={kpi.invertChange}
+            tooltip={kpi.tooltip}
           />
         ))}
       </div>
