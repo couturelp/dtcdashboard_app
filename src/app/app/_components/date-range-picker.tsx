@@ -47,6 +47,8 @@ export function DateRangePicker() {
     updateUrl(dateRange.current.from, dateRange.current.to, dateRange.preset, option);
   }
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
       <div className="flex flex-wrap items-center gap-2">
@@ -76,6 +78,7 @@ export function DateRangePicker() {
             <input
               type="date"
               value={dateRange.current.from}
+              max={dateRange.current.to}
               onChange={(e) => handleCustomChange('from', e.target.value)}
               className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg"
             />
@@ -83,6 +86,8 @@ export function DateRangePicker() {
             <input
               type="date"
               value={dateRange.current.to}
+              min={dateRange.current.from}
+              max={todayStr}
               onChange={(e) => handleCustomChange('to', e.target.value)}
               className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg"
             />

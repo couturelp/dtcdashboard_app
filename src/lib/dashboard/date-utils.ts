@@ -96,10 +96,8 @@ export function getComparisonRange(current: DateRange, option: CompareOption): D
   }
 
   if (option === 'same_period_last_year') {
-    const compFrom = new Date(fromDate);
-    compFrom.setFullYear(compFrom.getFullYear() - 1);
-    const compTo = new Date(toDate);
-    compTo.setFullYear(compTo.getFullYear() - 1);
+    const compFrom = shiftYearSafe(fromDate, -1);
+    const compTo = shiftYearSafe(toDate, -1);
     return { from: formatDate(compFrom), to: formatDate(compTo) };
   }
 
@@ -119,7 +117,8 @@ export function parseDateRangeFromParams(params: URLSearchParams): DateRangeWith
   let current: DateRange;
 
   if (from && to && isValidDate(from) && isValidDate(to)) {
-    current = { from, to };
+    // Swap if end is before start
+    current = from <= to ? { from, to } : { from: to, to: from };
   } else {
     current = getPresetRange(preset);
   }
@@ -150,12 +149,30 @@ export function buildDateRangeParams(
 // --- Helpers ---
 
 function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function addDays(date: Date, days: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
+  return result;
+}
+
+/**
+ * Shift a date by `delta` years, clamping to the last day of the month
+ * when the target month has fewer days (e.g., Feb 29 → Feb 28 in non-leap years).
+ */
+function shiftYearSafe(date: Date, delta: number): Date {
+  const result = new Date(date);
+  const targetYear = result.getFullYear() + delta;
+  result.setFullYear(targetYear);
+  // If the month overflowed (e.g., Feb 29 → Mar 1), clamp to last day of intended month
+  if (result.getMonth() !== date.getMonth()) {
+    result.setDate(0); // sets to last day of the previous month
+  }
   return result;
 }
 
