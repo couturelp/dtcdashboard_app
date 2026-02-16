@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         provisionError instanceof Error ? provisionError.message : 'Unknown error';
       console.error(
         `[StoreSetup] Database provisioning failed after ${MAX_PROVISION_RETRIES} attempts:`,
-        provisionError
+        errorMsg
       );
 
       // Notify admin of the failure
@@ -176,7 +176,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[StoreSetup] Error:', error);
+    console.error(
+      '[StoreSetup] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -50,7 +50,10 @@ export async function GET(request: NextRequest) {
       comparison_period: comparison,
     });
   } catch (error) {
-    console.error('[Marketing Summary] Error:', error);
+    console.error(
+      '[Marketing Summary] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

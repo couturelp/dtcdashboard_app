@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
       period: current,
     });
   } catch (error) {
-    console.error('[Marketing Platforms] Error:', error);
+    console.error(
+      '[Marketing Platforms] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

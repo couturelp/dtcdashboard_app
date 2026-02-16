@@ -494,15 +494,20 @@ export async function testTenantConnection(storeId: string): Promise<boolean> {
   const tenantRecord = await TenantDatabase.findOne({ store_id: storeId, status: 'active' });
   if (!tenantRecord) return false;
 
-  const credentials = await getTenantCredentials(storeId);
-  if (!credentials) return false;
+  // Decrypt password from the already-fetched record (avoids a redundant MongoDB lookup
+  // that getTenantCredentials would perform internally)
+  const password = decrypt({
+    ciphertext: tenantRecord.password_ciphertext,
+    iv: tenantRecord.password_iv,
+    authTag: tenantRecord.password_auth_tag,
+  });
 
   const testPool = new Pool({
-    host: credentials.host,
-    port: credentials.port,
-    user: credentials.username,
-    password: credentials.password,
-    database: credentials.database,
+    host: tenantRecord.database_host,
+    port: tenantRecord.database_port,
+    user: tenantRecord.fivetran_username,
+    password,
+    database: tenantRecord.database_name,
     max: 1,
     connectionTimeoutMillis: 10_000,
   });
