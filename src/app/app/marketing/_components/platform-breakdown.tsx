@@ -1,7 +1,7 @@
 // src/app/app/marketing/_components/platform-breakdown.tsx
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface PlatformData {
@@ -25,6 +25,7 @@ interface PlatformsResponse {
 }
 
 export function PlatformBreakdown() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<PlatformsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -129,56 +130,108 @@ export function PlatformBreakdown() {
             </tr>
           </thead>
           <tbody>
-            {platforms.map((p) => (
-              <tr
-                key={p.platform}
-                className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-              >
-                <td className="px-6 py-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="inline-block w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor: p.platform === 'meta' ? '#1877F2' : '#4285F4',
-                      }}
-                    />
-                    <span className="font-medium text-gray-900">{p.platform_label}</span>
-                    {!p.has_data && (
-                      <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                        Not connected
+            {platforms.map((p) => {
+              const platformColor = p.platform === 'meta' ? '#1877F2' : '#4285F4';
+              return (
+                <tr
+                  key={p.platform}
+                  className={`border-b border-gray-50 transition-colors ${
+                    p.has_data
+                      ? 'hover:bg-gray-50/50 cursor-pointer'
+                      : 'opacity-60'
+                  }`}
+                  onClick={
+                    p.has_data
+                      ? () => {
+                          const params = new URLSearchParams(searchParams.toString());
+                          params.set('platform', p.platform);
+                          router.push(`/app/marketing?${params.toString()}`);
+                        }
+                      : undefined
+                  }
+                  role={p.has_data ? 'link' : undefined}
+                  tabIndex={p.has_data ? 0 : undefined}
+                  onKeyDown={
+                    p.has_data
+                      ? (e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const params = new URLSearchParams(searchParams.toString());
+                            params.set('platform', p.platform);
+                            router.push(`/app/marketing?${params.toString()}`);
+                          }
+                        }
+                      : undefined
+                  }
+                >
+                  <td className="px-6 py-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block w-2 h-2 rounded-full"
+                        style={{ backgroundColor: platformColor }}
+                      />
+                      <span className="font-medium text-gray-900">{p.platform_label}</span>
+                      {!p.has_data && (
+                        <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                          Not connected
+                        </span>
+                      )}
+                      {p.has_data && (
+                        <svg
+                          className="w-3.5 h-3.5 text-gray-400 ml-auto"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-900 font-medium font-mono tabular-nums">
+                    {fmtCur(p.spend)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${Math.min(p.spend_percentage, 100)}%`,
+                            backgroundColor: platformColor,
+                          }}
+                        />
+                      </div>
+                      <span className="text-gray-600 font-mono tabular-nums text-sm">
+                        {p.spend_percentage.toFixed(1)}%
                       </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right text-gray-900 font-medium font-mono tabular-nums">
-                  {fmtCur(p.spend)}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {p.spend_percentage.toFixed(1)}%
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {fmtNum(p.impressions)}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {fmtNum(p.clicks)}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {p.ctr.toFixed(2)}%
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {fmtNum(p.conversions)}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {fmtCur(p.conversion_value)}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-900 font-medium font-mono tabular-nums">
-                  {p.roas.toFixed(2)}x
-                </td>
-                <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
-                  {fmtCur(p.cpa)}
-                </td>
-              </tr>
-            ))}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
+                    {fmtNum(p.impressions)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
+                    {fmtNum(p.clicks)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
+                    {p.ctr.toFixed(2)}%
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
+                    {fmtNum(p.conversions)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
+                    {fmtCur(p.conversion_value)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-900 font-medium font-mono tabular-nums">
+                    {p.roas.toFixed(2)}x
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-600 font-mono tabular-nums">
+                    {fmtCur(p.cpa)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
