@@ -70,6 +70,25 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid currency code.' }, { status: 400 });
     }
 
+    // Validate conditions_json: must be a plain object (or null/undefined) with bounded size
+    let sanitizedConditions: Record<string, unknown> | null = null;
+    if (conditions_json !== undefined && conditions_json !== null) {
+      if (typeof conditions_json !== 'object' || Array.isArray(conditions_json)) {
+        return NextResponse.json(
+          { error: 'conditions_json must be a JSON object or null.' },
+          { status: 400 }
+        );
+      }
+      const jsonSize = JSON.stringify(conditions_json).length;
+      if (jsonSize > 10_000) {
+        return NextResponse.json(
+          { error: 'conditions_json exceeds maximum size (10KB).' },
+          { status: 400 }
+        );
+      }
+      sanitizedConditions = conditions_json;
+    }
+
     await connectDB();
     const shipping = await ShippingRate.findOneAndUpdate(
       { store_id: storeId },
@@ -79,7 +98,7 @@ export async function PUT(request: NextRequest) {
           rate_type,
           rate_value: rate_type === 'shopify_default' ? 0 : rate_value,
           currency: currency?.toUpperCase() || 'USD',
-          conditions_json: conditions_json || null,
+          conditions_json: sanitizedConditions,
         },
       },
       { new: true, upsert: true }

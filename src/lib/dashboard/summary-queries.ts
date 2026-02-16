@@ -1,8 +1,9 @@
 // src/lib/dashboard/summary-queries.ts
 import mongoose from 'mongoose';
-import Store from '@/lib/db/models/store';
-import OperatingExpense from '@/lib/db/models/operating-expense';
 import CustomExpense from '@/lib/db/models/custom-expense';
+import OperatingExpense from '@/lib/db/models/operating-expense';
+import ShippingRate from '@/lib/db/models/shipping-rate';
+import Store from '@/lib/db/models/store';
 import { connectDB } from '@/lib/db/mongodb';
 import { queryTenant } from '@/lib/tenant-db';
 
@@ -77,20 +78,44 @@ export async function fetchKpiSummary(
   const totalCogs = 0;
   const totalTransactionFees = 0;
 
-  // Operating expenses & custom expenses from MongoDB (stored in cents, convert to dollars)
+  // Operating expenses, custom expenses, and shipping config from MongoDB
   await connectDB();
   const rangeStart = new Date(from + 'T00:00:00');
   const rangeEnd = new Date(to + 'T23:59:59.999');
-  const [opExpCents, customExpCents] = await Promise.all([
+  const [opExpCents, customExpCents, shippingConfig] = await Promise.all([
     aggregateOperatingExpenses(storeId, rangeStart, rangeEnd),
     aggregateCustomExpenses(storeId, rangeStart, rangeEnd),
+    ShippingRate.findOne({ store_id: storeId }).lean(),
   ]);
   // Convert cents to dollars to match Shopify revenue/discount/shipping units
   const totalOperatingExpenses = opExpCents / 100;
   const totalCustomExpenses = customExpCents / 100;
 
+  // Custom shipping cost: override Shopify shipping when a custom rate is configured
+  let effectiveShipping = totalShipping; // default: Shopify's shipping price
+  if (shippingConfig && shippingConfig.rate_type !== 'shopify_default') {
+    if (shippingConfig.rate_type === 'flat') {
+      // Flat rate: rate_value (cents) × number of orders → convert to dollars
+      effectiveShipping = (shippingConfig.rate_value * totalOrders) / 100;
+    } else if (shippingConfig.rate_type === 'per_item') {
+      // Per-item rate: need total item count from order_line table
+      const itemRow = await safeQuery(
+        `SELECT COALESCE(SUM(ol.quantity),0) AS total_items
+         FROM order_line ol
+         JOIN "order" o ON o.id = ol.order_id
+         WHERE o.created_at >= $1::timestamp
+           AND o.created_at < ($2::date + INTERVAL '1 day')::timestamp
+           AND o.cancelled_at IS NULL`,
+        [from, to]
+      );
+      const totalItems = parseInt(itemRow?.total_items, 10) || 0;
+      effectiveShipping = (shippingConfig.rate_value * totalItems) / 100;
+    }
+    // weight_based: falls through to Shopify default (needs order weight data, future improvement)
+  }
+
   const netRevenue = totalRevenue - totalDiscounts - totalRefunds;
-  const grossProfit = netRevenue - totalCogs - totalShipping - totalTransactionFees;
+  const grossProfit = netRevenue - totalCogs - effectiveShipping - totalTransactionFees;
   const netProfit = grossProfit - totalAdSpend - totalOperatingExpenses - totalCustomExpenses;
 
   return {
@@ -99,7 +124,7 @@ export async function fetchKpiSummary(
     average_order_value: totalOrders > 0 ? totalRevenue / totalOrders : 0,
     total_discounts: totalDiscounts,
     total_refunds: totalRefunds,
-    total_shipping: totalShipping,
+    total_shipping: effectiveShipping,
     total_cogs: totalCogs,
     total_ad_spend: totalAdSpend,
     total_operating_expenses: totalOperatingExpenses,

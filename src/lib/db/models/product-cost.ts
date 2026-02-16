@@ -33,7 +33,8 @@ const ProductCostSchema = new Schema<IProductCost>(
 
 // Compound index for upsert: one cost per variant per store
 ProductCostSchema.index({ store_id: 1, shopify_variant_id: 1 }, { unique: true, sparse: true });
-ProductCostSchema.index({ store_id: 1, sku: 1 });
+// Secondary dedup: one cost per SKU per store (sparse so null SKUs are excluded)
+ProductCostSchema.index({ store_id: 1, sku: 1 }, { unique: true, sparse: true });
 
 const ProductCost: Model<IProductCost> =
   mongoose.models.ProductCost || mongoose.model<IProductCost>('ProductCost', ProductCostSchema);
