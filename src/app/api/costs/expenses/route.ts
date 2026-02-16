@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     if (!isPositiveAmount(amount) || amount === 0) {
       return NextResponse.json({ error: 'Amount must be a positive integer (in cents).' }, { status: 400 });
     }
-    if (currency && !isValidCurrency(currency)) {
+    if (currency !== undefined && currency !== null && !isValidCurrency(currency)) {
       return NextResponse.json({ error: 'Invalid currency code.' }, { status: 400 });
     }
     if (!isValidFrequency(frequency)) {

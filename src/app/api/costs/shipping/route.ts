@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    if (currency && !isValidCurrency(currency)) {
+    if (currency !== undefined && currency !== null && !isValidCurrency(currency)) {
       return NextResponse.json({ error: 'Invalid currency code.' }, { status: 400 });
     }
 

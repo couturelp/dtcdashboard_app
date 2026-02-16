@@ -24,7 +24,8 @@ const VALID_CURRENCIES = new Set([
   'CZK',
 ]);
 
-export function isValidCurrency(code: string): boolean {
+export function isValidCurrency(code: unknown): boolean {
+  if (typeof code !== 'string') return false;
   return VALID_CURRENCIES.has(code.toUpperCase());
 }
 
