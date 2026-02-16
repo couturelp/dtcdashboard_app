@@ -210,22 +210,25 @@ export async function provisionTenantDatabase(storeId: string): Promise<ITenantD
 
     return tenantRecord;
   } catch (error) {
+    // Extract only the message — the raw error may contain SQL with passwords
+    const safeMessage = error instanceof Error ? error.message : 'Unknown provisioning error';
+
     // Try to record the error in MongoDB. Use try/catch because the
     // tenantRecord might not have been inserted yet (e.g., duplicate key
     // race condition), in which case this save would also fail.
     try {
       tenantRecord.status = 'error';
-      tenantRecord.error_message =
-        error instanceof Error ? error.message : 'Unknown provisioning error';
+      tenantRecord.error_message = safeMessage;
       await tenantRecord.save();
     } catch {
       // Could not persist error status — log it but don't mask the original error
       console.error(
         `[TenantDB] Failed to record provisioning error for store ${storeId}:`,
-        error instanceof Error ? error.message : error
+        safeMessage
       );
     }
-    throw error;
+    // Re-throw with sanitized message to prevent password leaks in upstream logs
+    throw new Error(`Database provisioning failed for store ${storeId}: ${safeMessage}`);
   }
 }
 
@@ -470,7 +473,11 @@ async function _rotateTenantPasswordInner(storeId: string): Promise<string> {
     tenantRecord.password_iv = oldIv;
     tenantRecord.password_auth_tag = oldAuthTag;
     await tenantRecord.save();
-    throw pgError;
+    // Re-throw with a sanitized message — the raw pgError may contain
+    // the ALTER ROLE SQL statement with the new password in plaintext
+    throw new Error(
+      `Failed to update PostgreSQL password for store ${storeId}: ${pgError instanceof Error ? pgError.message : 'Unknown PostgreSQL error'}`
+    );
   }
 
   // Close any cached connection pool (it uses master creds, not affected, but good hygiene)
