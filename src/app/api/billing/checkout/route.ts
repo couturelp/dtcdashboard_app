@@ -15,7 +15,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+    }
     const { priceId } = body as { priceId?: string };
 
     if (!priceId || typeof priceId !== 'string') {
@@ -93,6 +98,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid billing request. Please check your plan selection.' },
         { status: 400 }
+      );
+    }
+    if (error instanceof Stripe.errors.StripeRateLimitError) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        { status: 429 }
       );
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

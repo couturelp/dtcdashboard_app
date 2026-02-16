@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { SettingsClient } from './_components/settings-client';
 
 export default function SettingsPage() {
@@ -9,7 +10,9 @@ export default function SettingsPage() {
           Manage your profile, security, and store configuration.
         </p>
       </div>
-      <SettingsClient />
+      <Suspense>
+        <SettingsClient />
+      </Suspense>
     </div>
   );
 }

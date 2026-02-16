@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 import { PasswordForm } from './password-form';
 import { StoreForm } from './store-form';
@@ -19,10 +20,26 @@ interface StoreData {
 type LoadingState = 'loading' | 'loaded' | 'error';
 
 export function SettingsClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [billingMessage, setBillingMessage] = useState<{ type: 'success' | 'canceled'; text: string } | null>(null);
   const [profileState, setProfileState] = useState<LoadingState>('loading');
   const [storeState, setStoreState] = useState<LoadingState>('loading');
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [store, setStore] = useState<StoreData | null>(null);
+
+  // Show billing feedback from Stripe Checkout redirect
+  useEffect(() => {
+    const billing = searchParams.get('billing');
+    if (billing === 'success') {
+      setBillingMessage({ type: 'success', text: 'Your subscription is now active! It may take a moment to reflect.' });
+      // Clean up the URL query param without a page reload
+      router.replace('/app/settings', { scroll: false });
+    } else if (billing === 'canceled') {
+      setBillingMessage({ type: 'canceled', text: 'Checkout was canceled. No charges were made.' });
+      router.replace('/app/settings', { scroll: false });
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     fetch('/api/user/profile')
@@ -55,6 +72,26 @@ export function SettingsClient() {
 
   return (
     <div className="space-y-8">
+      {/* Billing redirect feedback */}
+      {billingMessage && (
+        <div
+          className={`rounded-lg border p-4 text-sm flex items-center justify-between ${
+            billingMessage.type === 'success'
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+          }`}
+        >
+          <span>{billingMessage.text}</span>
+          <button
+            onClick={() => setBillingMessage(null)}
+            className="ml-4 text-current opacity-60 hover:opacity-100"
+            aria-label="Dismiss"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       {/* Profile Section */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="border-b border-gray-200 px-4 py-4 sm:px-6">

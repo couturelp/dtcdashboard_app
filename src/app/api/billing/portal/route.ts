@@ -40,6 +40,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (error instanceof Stripe.errors.StripeRateLimitError) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment and try again.' },
+        { status: 429 }
+      );
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
