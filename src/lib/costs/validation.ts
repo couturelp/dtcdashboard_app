@@ -34,8 +34,13 @@ export function isPositiveAmount(value: unknown): value is number {
 
 export function isValidDate(value: unknown): value is string {
   if (typeof value !== 'string') return false;
-  const d = new Date(value);
-  return !isNaN(d.getTime());
+  // Require YYYY-MM-DD format to prevent ambiguous date parsing
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const d = new Date(value + 'T00:00:00');
+  if (isNaN(d.getTime())) return false;
+  // Reject overflow dates like Feb 31 → Mar 3: parsed date must match input components
+  const [y, m, day] = value.split('-').map(Number);
+  return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
 }
 
 const VALID_FREQUENCIES = ['one_time', 'monthly', 'quarterly', 'annual'] as const;

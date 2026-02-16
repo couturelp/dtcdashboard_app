@@ -56,13 +56,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       if (!isValidDate(body.start_date)) {
         return NextResponse.json({ error: 'Invalid start_date.' }, { status: 400 });
       }
-      updates.start_date = new Date(body.start_date);
+      updates.start_date = new Date(body.start_date + 'T00:00:00');
     }
     if (body.end_date !== undefined) {
       if (body.end_date !== null && !isValidDate(body.end_date)) {
         return NextResponse.json({ error: 'Invalid end_date.' }, { status: 400 });
       }
-      updates.end_date = body.end_date ? new Date(body.end_date) : null;
+      updates.end_date = body.end_date ? new Date(body.end_date + 'T00:00:00') : null;
     }
 
     if (Object.keys(updates).length === 0) {

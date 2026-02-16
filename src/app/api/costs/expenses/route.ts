@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
       amount, // stored as cents from client
       currency: currency?.toUpperCase() || 'USD',
       frequency,
-      start_date: new Date(start_date),
-      end_date: end_date ? new Date(end_date) : null,
+      start_date: new Date(start_date + 'T00:00:00'),
+      end_date: end_date ? new Date(end_date + 'T00:00:00') : null,
     });
 
     return NextResponse.json({ expense }, { status: 201 });

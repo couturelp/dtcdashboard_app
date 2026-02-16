@@ -33,9 +33,11 @@ export async function GET(request: NextRequest) {
     }
     if (from || to) {
       const dateFilter: Record<string, Date> = {};
-      if (from) dateFilter.$gte = new Date(from);
-      if (to) dateFilter.$lte = new Date(to);
-      filter.expense_date = dateFilter;
+      if (from && isValidDate(from)) dateFilter.$gte = new Date(from + 'T00:00:00');
+      if (to && isValidDate(to)) dateFilter.$lte = new Date(to + 'T23:59:59.999');
+      if (Object.keys(dateFilter).length > 0) {
+        filter.expense_date = dateFilter;
+      }
     }
 
     const expenses = await CustomExpense.find(filter).sort({ expense_date: -1 }).lean();
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
       category: category.trim(),
       amount,
       currency: currency?.toUpperCase() || 'USD',
-      expense_date: new Date(expense_date),
+      expense_date: new Date(expense_date + 'T00:00:00'),
     });
 
     return NextResponse.json({ expense }, { status: 201 });

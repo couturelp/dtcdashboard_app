@@ -55,7 +55,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       if (!isValidDate(body.expense_date)) {
         return NextResponse.json({ error: 'Invalid expense_date.' }, { status: 400 });
       }
-      updates.expense_date = new Date(body.expense_date);
+      updates.expense_date = new Date(body.expense_date + 'T00:00:00');
     }
 
     if (Object.keys(updates).length === 0) {
