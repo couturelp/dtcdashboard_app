@@ -28,10 +28,16 @@ export async function GET(request: NextRequest) {
       period: current,
     });
   } catch (error) {
-    console.error(
-      '[Marketing Platforms] Error:',
-      error instanceof Error ? error.message : 'Unknown error'
-    );
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Marketing Platforms] Error:', message);
+
+    if (message.includes('No active tenant database')) {
+      return NextResponse.json(
+        { error: 'Data not yet available. Please connect your Shopify store first.' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

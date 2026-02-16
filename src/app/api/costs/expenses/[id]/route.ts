@@ -69,6 +69,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'No fields to update.' }, { status: 400 });
     }
 
+    // Cross-field validation: end_date must not be before start_date
+    if (body.start_date && body.end_date && body.end_date !== null && body.end_date < body.start_date) {
+      return NextResponse.json({ error: 'end_date must not be before start_date.' }, { status: 400 });
+    }
+
     await connectDB();
     const expense = await OperatingExpense.findOneAndUpdate(
       { _id: id, store_id: storeId },

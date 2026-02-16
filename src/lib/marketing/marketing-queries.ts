@@ -36,7 +36,12 @@ export interface PlatformBreakdown {
 async function safeQuery(storeId: string, sql: string, params: unknown[]) {
   try {
     return (await queryTenant(storeId, sql, params)).rows;
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    // Propagate connection / auth errors — only swallow "relation does not exist" etc.
+    if (message.includes('No active tenant database') || message.includes('ECONNREFUSED')) {
+      throw err;
+    }
     return null;
   }
 }

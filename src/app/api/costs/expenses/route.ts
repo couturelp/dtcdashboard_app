@@ -72,6 +72,9 @@ export async function POST(request: NextRequest) {
     if (end_date !== undefined && end_date !== null && !isValidDate(end_date)) {
       return NextResponse.json({ error: 'Invalid end_date.' }, { status: 400 });
     }
+    if (end_date && isValidDate(end_date) && end_date < start_date) {
+      return NextResponse.json({ error: 'end_date must not be before start_date.' }, { status: 400 });
+    }
 
     await connectDB();
     const expense = await OperatingExpense.create({

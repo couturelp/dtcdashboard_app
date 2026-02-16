@@ -51,15 +51,21 @@ export async function GET(request: NextRequest) {
       comparison_period: comparison,
     });
   } catch (error) {
-    console.error(
-      '[Marketing Summary] Error:',
-      error instanceof Error ? error.message : 'Unknown error'
-    );
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Marketing Summary] Error:', message);
+
+    if (message.includes('No active tenant database')) {
+      return NextResponse.json(
+        { error: 'Data not yet available. Please connect your Shopify store first.' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 function calcChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
+  if (previous === 0) return current > 0 ? 100 : current < 0 ? -100 : 0;
   return ((current - previous) / Math.abs(previous)) * 100;
 }
