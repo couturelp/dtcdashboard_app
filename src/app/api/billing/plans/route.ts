@@ -59,6 +59,10 @@ export async function GET() {
     for (const price of prices.data) {
       if (!price.recurring || !price.unit_amount) continue;
 
+      // Only support month and year intervals on the pricing page
+      const interval = price.recurring.interval;
+      if (interval !== 'month' && interval !== 'year') continue;
+
       const tier = getTierByPriceId(price.id);
       // Skip prices not mapped to any tier (unknown price IDs default to 'free')
       if (tier === 'free') continue;
@@ -82,7 +86,7 @@ export async function GET() {
         priceId: price.id,
         amount: price.unit_amount,
         currency: price.currency,
-        interval: price.recurring.interval as 'month' | 'year',
+        interval,
       });
     }
 

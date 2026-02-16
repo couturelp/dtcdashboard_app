@@ -9,7 +9,9 @@ export const metadata: Metadata = {
     title: 'Pricing | DTC Dashboard',
     description:
       'Simple, transparent pricing for DTC Dashboard. Start free, upgrade as your business grows.',
-    url: '/pricing',
+    url: 'https://dtcdashboard.com/pricing',
+    siteName: 'DTC Dashboard',
+    type: 'website',
   },
 };
 

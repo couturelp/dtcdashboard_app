@@ -47,12 +47,14 @@ const SYNC_LABELS: Record<string, string> = {
 };
 
 function formatPrice(amount: number, currency: string): string {
+  const dollars = amount / 100;
+  const hasCents = dollars % 1 !== 0;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount / 100);
+    maximumFractionDigits: hasCents ? 2 : 0,
+  }).format(dollars);
 }
 
 const FAQ_ITEMS = [

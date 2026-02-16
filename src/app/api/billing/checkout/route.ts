@@ -29,7 +29,13 @@ export async function POST(request: NextRequest) {
 
     // Validate priceId against configured prices to prevent arbitrary price ID usage
     const knownPrices = getKnownPriceIds();
-    if (knownPrices.length > 0 && !knownPrices.includes(priceId)) {
+    if (knownPrices.length === 0) {
+      return NextResponse.json(
+        { error: 'Billing plans are not configured. Please contact support.' },
+        { status: 503 }
+      );
+    }
+    if (!knownPrices.includes(priceId)) {
       return NextResponse.json({ error: 'Invalid plan selected.' }, { status: 400 });
     }
 
