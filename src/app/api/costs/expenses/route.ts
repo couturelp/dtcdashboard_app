@@ -39,12 +39,12 @@ export async function GET(request: NextRequest) {
     if (from || to) {
       // Active during range: start_date <= rangeEnd AND (end_date IS NULL OR end_date >= rangeStart)
       if (to) {
-        filter.start_date = { $lte: new Date(to + 'T23:59:59.999') };
+        filter.start_date = { $lte: new Date(to + 'T23:59:59.999Z') };
       }
       if (from) {
         filter.$or = [
           { end_date: null },
-          { end_date: { $gte: new Date(from + 'T00:00:00') } },
+          { end_date: { $gte: new Date(from + 'T00:00:00Z') } },
         ];
       }
     }
@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
       amount, // stored as cents from client
       currency: currency?.toUpperCase() || 'USD',
       frequency,
-      start_date: new Date(start_date + 'T00:00:00'),
-      end_date: end_date ? new Date(end_date + 'T00:00:00') : null,
+      start_date: new Date(start_date + 'T00:00:00Z'),
+      end_date: end_date ? new Date(end_date + 'T00:00:00Z') : null,
     });
 
     return NextResponse.json({ expense }, { status: 201 });

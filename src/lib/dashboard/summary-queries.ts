@@ -80,8 +80,8 @@ export async function fetchKpiSummary(
 
   // Operating expenses, custom expenses, and shipping config from MongoDB
   await connectDB();
-  const rangeStart = new Date(from + 'T00:00:00');
-  const rangeEnd = new Date(to + 'T23:59:59.999');
+  const rangeStart = new Date(from + 'T00:00:00Z');
+  const rangeEnd = new Date(to + 'T23:59:59.999Z');
   const [opExpCents, customExpCents, shippingConfig] = await Promise.all([
     aggregateOperatingExpenses(storeId, rangeStart, rangeEnd),
     aggregateCustomExpenses(storeId, rangeStart, rangeEnd),

@@ -55,20 +55,20 @@ export function getPresetRange(preset: DatePreset, now: Date = new Date()): Date
     case 'last_30_days':
       return { from: formatDate(addDays(now, -29)), to: today };
     case 'this_month': {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
       return { from: formatDate(start), to: today };
     }
     case 'last_month': {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
+      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
       return { from: formatDate(start), to: formatDate(end) };
     }
     case 'this_quarter': {
-      const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+      const quarterStart = new Date(Date.UTC(now.getUTCFullYear(), Math.floor(now.getUTCMonth() / 3) * 3, 1));
       return { from: formatDate(quarterStart), to: today };
     }
     case 'this_year': {
-      const yearStart = new Date(now.getFullYear(), 0, 1);
+      const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
       return { from: formatDate(yearStart), to: today };
     }
     case 'custom':
@@ -84,8 +84,8 @@ export function getPresetRange(preset: DatePreset, now: Date = new Date()): Date
 export function getComparisonRange(current: DateRange, option: CompareOption): DateRange | null {
   if (option === 'none') return null;
 
-  const fromDate = new Date(current.from + 'T00:00:00');
-  const toDate = new Date(current.to + 'T00:00:00');
+  const fromDate = new Date(current.from + 'T00:00:00Z');
+  const toDate = new Date(current.to + 'T00:00:00Z');
   const durationMs = toDate.getTime() - fromDate.getTime();
   const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24));
 
@@ -149,15 +149,15 @@ export function buildDateRangeParams(
 // --- Helpers ---
 
 function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
 
 function addDays(date: Date, days: number): Date {
   const result = new Date(date);
-  result.setDate(result.getDate() + days);
+  result.setUTCDate(result.getUTCDate() + days);
   return result;
 }
 
@@ -167,20 +167,20 @@ function addDays(date: Date, days: number): Date {
  */
 function shiftYearSafe(date: Date, delta: number): Date {
   const result = new Date(date);
-  const targetYear = result.getFullYear() + delta;
-  result.setFullYear(targetYear);
+  const targetYear = result.getUTCFullYear() + delta;
+  result.setUTCFullYear(targetYear);
   // If the month overflowed (e.g., Feb 29 → Mar 1), clamp to last day of intended month
-  if (result.getMonth() !== date.getMonth()) {
-    result.setDate(0); // sets to last day of the previous month
+  if (result.getUTCMonth() !== date.getUTCMonth()) {
+    result.setUTCDate(0); // sets to last day of the previous month
   }
   return result;
 }
 
 function isValidDate(str: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
-  const d = new Date(str + 'T00:00:00');
+  const d = new Date(str + 'T00:00:00Z');
   if (isNaN(d.getTime())) return false;
   // Reject overflow dates like Feb 31 → Mar 3: parsed date must match input components
   const [y, m, day] = str.split('-').map(Number);
-  return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
+  return d.getUTCFullYear() === y && d.getUTCMonth() + 1 === m && d.getUTCDate() === day;
 }
