@@ -23,6 +23,35 @@ interface BillingStatus {
 
 type LoadingState = 'loading' | 'loaded' | 'error';
 
+// What each tier upgrade unlocks (shown as value proposition)
+const UPGRADE_INFO: Record<string, { nextTier: string; benefits: string[] } | null> = {
+  free: {
+    nextTier: 'Starter',
+    benefits: [
+      'Up to 3 data sources',
+      'Hourly data sync',
+      'CSV export',
+    ],
+  },
+  starter: {
+    nextTier: 'Professional',
+    benefits: [
+      'Up to 10 data sources',
+      '15-minute data sync',
+      'Advanced analytics & campaign drill-downs',
+    ],
+  },
+  professional: {
+    nextTier: 'Enterprise',
+    benefits: [
+      'Unlimited data sources',
+      'Real-time data sync',
+      'Priority support',
+    ],
+  },
+  enterprise: null, // Top tier — no upgrade available
+};
+
 export function BillingSection() {
   const [state, setState] = useState<LoadingState>('loading');
   const [billing, setBilling] = useState<BillingStatus | null>(null);
@@ -166,6 +195,31 @@ export function BillingSection() {
                 ) : null}
               </p>
             )}
+        </div>
+      )}
+
+      {/* Upgrade CTA with value proposition */}
+      {UPGRADE_INFO[billing.tier] && (
+        <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4">
+          <p className="text-sm font-semibold text-gray-900">
+            Unlock more with {UPGRADE_INFO[billing.tier]!.nextTier}
+          </p>
+          <ul className="mt-2 space-y-1">
+            {UPGRADE_INFO[billing.tier]!.benefits.map((b) => (
+              <li key={b} className="flex items-center gap-2 text-sm text-gray-600">
+                <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                {b}
+              </li>
+            ))}
+          </ul>
+          <a
+            href="/pricing"
+            className="mt-3 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors"
+          >
+            View Plans
+          </a>
         </div>
       )}
 
