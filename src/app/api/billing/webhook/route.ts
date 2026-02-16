@@ -3,6 +3,7 @@ import type Stripe from 'stripe';
 import Subscription from '@/lib/db/models/subscription';
 import User from '@/lib/db/models/user';
 import { connectDB } from '@/lib/db/mongodb';
+import { sendPaymentFailedEmail } from '@/lib/email';
 import { constructWebhookEvent } from '@/lib/stripe';
 
 // Track processed event IDs for idempotency (in-memory, resets on deploy)
@@ -29,43 +30,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Idempotency check
+    // Idempotency check — mark BEFORE processing to prevent concurrent duplicates.
+    // If processing fails, the ID is removed so Stripe retries can succeed.
     if (processedEvents.has(event.id)) {
       return NextResponse.json({ received: true });
     }
-
-    await connectDB();
-
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
-        break;
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpsert(event.data.object as Stripe.Subscription);
-        break;
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
-        break;
-      case 'invoice.payment_succeeded':
-        await handlePaymentSucceeded(event.data.object as Stripe.Invoice);
-        break;
-      case 'invoice.payment_failed':
-        await handlePaymentFailed(event.data.object as Stripe.Invoice);
-        break;
-      default:
-        // Unhandled event type — log and acknowledge
-        console.log(`[Webhook] Unhandled event type: ${event.type}`);
-    }
-
-    // Mark event as processed
     processedEvents.add(event.id);
+
+    // Prune oldest entries when set grows too large
     if (processedEvents.size > MAX_PROCESSED_EVENTS) {
-      // Prune oldest entries (Set iteration order is insertion order)
       const iter = processedEvents.values();
       for (let i = 0; i < 1000; i++) {
         processedEvents.delete(iter.next().value!);
       }
+    }
+
+    try {
+      await connectDB();
+
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+          break;
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          await handleSubscriptionUpsert(event.data.object as Stripe.Subscription);
+          break;
+        case 'customer.subscription.deleted':
+          await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+          break;
+        case 'invoice.payment_succeeded':
+          await handlePaymentSucceeded(event.data.object as Stripe.Invoice);
+          break;
+        case 'invoice.payment_failed':
+          await handlePaymentFailed(event.data.object as Stripe.Invoice);
+          break;
+        default:
+          // Unhandled event type — log and acknowledge
+          console.log(`[Webhook] Unhandled event type: ${event.type}`);
+      }
+    } catch (processingError) {
+      // Remove from idempotency set so Stripe retries can reprocess
+      processedEvents.delete(event.id);
+      throw processingError;
     }
 
     return NextResponse.json({ received: true });
@@ -161,7 +168,8 @@ async function handleSubscriptionDeleted(sub: Stripe.Subscription): Promise<void
     {
       $set: {
         status: 'canceled',
-        canceled_at: new Date(),
+        canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000) : new Date(),
+        cancel_at_period_end: false,
       },
     }
   );
@@ -189,7 +197,8 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
 }
 
 /**
- * Handle invoice.payment_failed — update subscription status to past_due.
+ * Handle invoice.payment_failed — update subscription status to past_due
+ * and send a notification email to the user via SendGrid.
  */
 async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const subscriptionId = getSubscriptionIdFromInvoice(invoice);
@@ -199,6 +208,21 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     { stripe_subscription_id: subscriptionId },
     { $set: { status: 'past_due' } }
   );
+
+  // Send payment failure notification email
+  const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id;
+  if (customerId) {
+    try {
+      const user = await User.findOne({ stripe_customer_id: customerId }).lean();
+      if (user?.email) {
+        await sendPaymentFailedEmail(user.email, user.name || '');
+        console.log(`[Webhook] Payment failed email sent to ${user.email} for subscription ${subscriptionId}`);
+      }
+    } catch (emailErr) {
+      // Don't let email failure prevent webhook acknowledgment
+      console.error('[Webhook] Failed to send payment failure email:', emailErr);
+    }
+  }
 
   console.log(`[Webhook] Payment failed for subscription ${subscriptionId}, set to past_due`);
 }

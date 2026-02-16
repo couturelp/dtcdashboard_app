@@ -125,6 +125,26 @@ export async function sendAdminAlert(subject: string, details: string): Promise<
   });
 }
 
+export async function sendPaymentFailedEmail(to: string, name: string): Promise<void> {
+  const safeName = escapeHtml(name || 'there');
+  const billingUrl = `${APP_URL}/app/settings?section=billing`;
+
+  await sendEmail({
+    to,
+    subject: 'Action required: Your DTC Dashboard payment failed',
+    text: `Hi ${name || 'there'},\n\nWe were unable to process your latest payment for DTC Dashboard. Your subscription is still active for the next 3 days, but please update your payment method to avoid any interruption.\n\nUpdate your billing details at: ${billingUrl}\n\nIf you believe this is an error, please contact support.\n\nBest,\nThe DTC Dashboard Team`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+        <h1 style="font-size: 24px; font-weight: 600; color: #b91c1c; margin-bottom: 16px;">Payment failed</h1>
+        <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 8px;">Hi ${safeName},</p>
+        <p style="font-size: 16px; color: #444; line-height: 1.6; margin-bottom: 24px;">We were unable to process your latest payment. Your subscription is still active for the next 3 days, but please update your payment method to avoid any interruption in service.</p>
+        <a href="${billingUrl}" style="display: inline-block; background: #4F46E5; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 16px;">Update Payment Method</a>
+        <p style="font-size: 14px; color: #888; margin-top: 32px; line-height: 1.5;">If you believe this is an error, please contact support.</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const safeName = escapeHtml(name || 'there');
 
