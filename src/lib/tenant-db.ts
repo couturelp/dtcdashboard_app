@@ -210,10 +210,21 @@ export async function provisionTenantDatabase(storeId: string): Promise<ITenantD
 
     return tenantRecord;
   } catch (error) {
-    tenantRecord.status = 'error';
-    tenantRecord.error_message =
-      error instanceof Error ? error.message : 'Unknown provisioning error';
-    await tenantRecord.save();
+    // Try to record the error in MongoDB. Use try/catch because the
+    // tenantRecord might not have been inserted yet (e.g., duplicate key
+    // race condition), in which case this save would also fail.
+    try {
+      tenantRecord.status = 'error';
+      tenantRecord.error_message =
+        error instanceof Error ? error.message : 'Unknown provisioning error';
+      await tenantRecord.save();
+    } catch {
+      // Could not persist error status — log it but don't mask the original error
+      console.error(
+        `[TenantDB] Failed to record provisioning error for store ${storeId}:`,
+        error instanceof Error ? error.message : error
+      );
+    }
     throw error;
   }
 }
@@ -255,6 +266,15 @@ export async function deleteTenantDatabase(storeId: string): Promise<void> {
 
     // Drop database
     await master.query(`DROP DATABASE IF EXISTS "${dbName}"`);
+
+    // Revoke all remaining privileges from the role before dropping it.
+    // This prevents "role cannot be dropped because some objects depend on it" errors
+    // if the role was granted privileges on other databases or the default 'postgres' db.
+    try {
+      await master.query(`REVOKE ALL PRIVILEGES ON DATABASE postgres FROM "${username}"`);
+    } catch {
+      // May fail if no privileges exist — non-fatal
+    }
 
     // Drop user
     await master.query(`DROP ROLE IF EXISTS "${username}"`);
@@ -330,6 +350,14 @@ export async function queryTenant(
   sql: string,
   params: unknown[] = []
 ): Promise<import('pg').QueryResult> {
+  // Fast path: if the pool is already cached, skip the MongoDB lookup & decryption
+  const cachedEntry = pools.get(storeId);
+  if (cachedEntry) {
+    cachedEntry.lastUsed = Date.now();
+    return cachedEntry.pool.query(sql, params);
+  }
+
+  // Slow path: look up credentials and create a new pool
   await connectDB();
 
   const tenantRecord = await TenantDatabase.findOne({ store_id: storeId, status: 'active' });
@@ -402,17 +430,32 @@ export async function rotateTenantPassword(storeId: string): Promise<string> {
   const newPassword = crypto.randomBytes(24).toString('base64url');
   const encryptedPassword = encrypt(newPassword);
 
-  // Update PostgreSQL user password
-  const master = getMasterPool();
-  await master.query(
-    `ALTER ROLE "${tenantRecord.fivetran_username}" WITH PASSWORD '${newPassword.replace(/'/g, "''")}'`
-  );
+  // Save old credentials so we can revert MongoDB if PostgreSQL update fails.
+  // This prevents the stored password from getting out of sync with PostgreSQL.
+  const oldCiphertext = tenantRecord.password_ciphertext;
+  const oldIv = tenantRecord.password_iv;
+  const oldAuthTag = tenantRecord.password_auth_tag;
 
-  // Update encrypted password in MongoDB
+  // Update encrypted password in MongoDB first
   tenantRecord.password_ciphertext = encryptedPassword.ciphertext;
   tenantRecord.password_iv = encryptedPassword.iv;
   tenantRecord.password_auth_tag = encryptedPassword.authTag;
   await tenantRecord.save();
+
+  // Now update PostgreSQL user password; revert MongoDB on failure
+  const master = getMasterPool();
+  try {
+    await master.query(
+      `ALTER ROLE "${tenantRecord.fivetran_username}" WITH PASSWORD '${newPassword.replace(/'/g, "''")}'`
+    );
+  } catch (pgError) {
+    // Revert MongoDB to the old password so it stays in sync with PostgreSQL
+    tenantRecord.password_ciphertext = oldCiphertext;
+    tenantRecord.password_iv = oldIv;
+    tenantRecord.password_auth_tag = oldAuthTag;
+    await tenantRecord.save();
+    throw pgError;
+  }
 
   // Close any cached connection pool (it uses master creds, not affected, but good hygiene)
   await closeTenantConnection(storeId);
