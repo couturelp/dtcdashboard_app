@@ -7,9 +7,10 @@ interface KpiCardProps {
   prefix?: string; // e.g., "$"
   suffix?: string; // e.g., "%"
   loading?: boolean;
+  invertChange?: boolean; // true for metrics where lower is better (CPA, CPM)
 }
 
-export function KpiCard({ label, value, change, prefix, suffix, loading }: KpiCardProps) {
+export function KpiCard({ label, value, change, prefix, suffix, loading, invertChange }: KpiCardProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
@@ -22,6 +23,9 @@ export function KpiCard({ label, value, change, prefix, suffix, loading }: KpiCa
 
   const isPositive = change !== null && change > 0;
   const isNegative = change !== null && change < 0;
+  // For metrics where lower is better (CPA, CPM), invert the color coding
+  const isGood = invertChange ? isNegative : isPositive;
+  const isBad = invertChange ? isPositive : isNegative;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -35,7 +39,7 @@ export function KpiCard({ label, value, change, prefix, suffix, loading }: KpiCa
         <div className="flex items-center gap-1 mt-2">
           <span
             className={`text-xs font-medium ${
-              isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-gray-500'
+              isGood ? 'text-emerald-600' : isBad ? 'text-red-600' : 'text-gray-500'
             }`}
           >
             {isPositive ? '\u25B2' : isNegative ? '\u25BC' : '\u2014'} {Math.abs(change).toFixed(1)}

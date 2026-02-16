@@ -70,8 +70,9 @@ export function MarketingKpiSummary() {
     fmt: (v: number) => string;
     suffix?: string;
     tooltip?: string;
+    invertChange?: boolean;
   }[] = [
-    { label: 'Total Ad Spend', key: 'total_ad_spend', fmt: fmtCur },
+    { label: 'Total Ad Spend', key: 'total_ad_spend', fmt: fmtCur, invertChange: true },
     { label: 'Conversions', key: 'total_conversions', fmt: fmtNum },
     {
       label: 'ROAS',
@@ -84,6 +85,7 @@ export function MarketingKpiSummary() {
       key: 'cpa',
       fmt: fmtCur,
       tooltip: 'Cost to acquire one customer through ads',
+      invertChange: true,
     },
     {
       label: 'CTR',
@@ -97,6 +99,7 @@ export function MarketingKpiSummary() {
       key: 'cpm',
       fmt: fmtCur,
       tooltip: 'Cost for every 1,000 times your ad was shown',
+      invertChange: true,
     },
   ];
 
@@ -110,6 +113,7 @@ export function MarketingKpiSummary() {
           change={data?.changes?.[kpi.key] ?? null}
           suffix={kpi.suffix}
           loading={loading}
+          invertChange={kpi.invertChange}
         />
       ))}
     </div>
