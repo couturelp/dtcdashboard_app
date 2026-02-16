@@ -14,6 +14,7 @@ export interface MarketingKpiSummary {
   ctr: number; // (clicks / impressions) * 100
   cpm: number; // (ad_spend / impressions) * 1000
   cpc: number; // ad_spend / clicks
+  has_any_data: boolean; // true if at least one platform returned data
 }
 
 export interface PlatformBreakdown {
@@ -181,6 +182,7 @@ export async function fetchMarketingKpiSummary(
     ctr: calcRate(totalClicks, totalImpressions, 100),
     cpm: calcRate(totalSpend, totalImpressions, 1000),
     cpc: calcRate(totalSpend, totalClicks),
+    has_any_data: meta !== null || google !== null,
   };
 }
 

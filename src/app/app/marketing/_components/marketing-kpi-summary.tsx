@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { KpiCard } from '../../_components/kpi-card';
 
 interface MarketingSummaryResponse {
-  current: Record<string, number>;
+  current: Record<string, number> & { has_any_data?: boolean };
   changes: Record<string, number> | null;
   currency: string;
 }
@@ -103,19 +103,28 @@ export function MarketingKpiSummary() {
     },
   ];
 
+  const hasAnyData = data?.current?.has_any_data !== false;
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-      {kpis.map((kpi) => (
-        <KpiCard
-          key={kpi.label}
-          label={kpi.label}
-          value={loading ? '' : kpi.fmt(data!.current[kpi.key])}
-          change={data?.changes?.[kpi.key] ?? null}
-          suffix={kpi.suffix}
-          loading={loading}
-          invertChange={kpi.invertChange}
-        />
-      ))}
+    <div>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        {kpis.map((kpi) => (
+          <KpiCard
+            key={kpi.label}
+            label={kpi.label}
+            value={loading ? '' : kpi.fmt(data?.current?.[kpi.key] ?? 0)}
+            change={data?.changes?.[kpi.key] ?? null}
+            suffix={kpi.suffix}
+            loading={loading}
+            invertChange={kpi.invertChange}
+          />
+        ))}
+      </div>
+      {!loading && data && !hasAnyData && (
+        <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-500 text-center">
+          No ad platform data available. Connect your Meta Ads or Google Ads through Fivetran to see marketing KPIs.
+        </div>
+      )}
     </div>
   );
 }
