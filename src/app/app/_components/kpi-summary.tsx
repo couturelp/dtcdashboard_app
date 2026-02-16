@@ -70,7 +70,7 @@ export function KpiSummary() {
         <KpiCard
           key={kpi.label}
           label={kpi.label}
-          value={loading ? '' : kpi.fmt(data!.current[kpi.key])}
+          value={loading ? '' : kpi.fmt(data?.current[kpi.key] ?? 0)}
           change={data?.changes?.[kpi.key] ?? null}
           suffix={kpi.suffix}
           loading={loading}

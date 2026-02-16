@@ -35,6 +35,7 @@ export function Sidebar() {
         onClick={() => setMobileOpen(!mobileOpen)}
         className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white shadow-md border border-gray-200"
         aria-label="Toggle navigation"
+        aria-expanded={mobileOpen}
       >
         <span className="block w-5 h-0.5 bg-gray-700 mb-1" />
         <span className="block w-5 h-0.5 bg-gray-700 mb-1" />
