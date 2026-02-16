@@ -1,7 +1,7 @@
 // src/app/api/dashboard/summary/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { parseDateRangeFromParams } from '@/lib/dashboard/date-utils';
-import { fetchKpiSummary, getStoreCurrency } from '@/lib/dashboard/summary-queries';
+import { fetchKpiSummary, getStoreCurrency, calcChange } from '@/lib/dashboard/summary-queries';
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,9 +61,4 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
-
-function calcChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : current < 0 ? -100 : 0;
-  return ((current - previous) / Math.abs(previous)) * 100;
 }

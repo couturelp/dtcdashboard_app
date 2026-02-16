@@ -100,3 +100,12 @@ export async function getStoreCurrency(storeId: string): Promise<string> {
   const store = await Store.findById(storeId).select('currency').lean();
   return store?.currency || 'USD';
 }
+
+/**
+ * Calculate percentage change between current and previous values.
+ * Used by dashboard and marketing summary routes for consistent comparison.
+ */
+export function calcChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : current < 0 ? -100 : 0;
+  return ((current - previous) / Math.abs(previous)) * 100;
+}
