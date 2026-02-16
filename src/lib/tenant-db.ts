@@ -396,7 +396,7 @@ export async function getTenantCredentials(storeId: string): Promise<{
 } | null> {
   await connectDB();
 
-  const tenantRecord = await TenantDatabase.findOne({ store_id: storeId });
+  const tenantRecord = await TenantDatabase.findOne({ store_id: storeId, status: 'active' });
   if (!tenantRecord) return null;
 
   const password = decrypt({
@@ -416,7 +416,23 @@ export async function getTenantCredentials(storeId: string): Promise<{
 
 // ----- Credential rotation -----
 
+// Guard against concurrent rotation for the same store (process-level lock)
+const rotatingStores = new Set<string>();
+
 export async function rotateTenantPassword(storeId: string): Promise<string> {
+  if (rotatingStores.has(storeId)) {
+    throw new Error(`Password rotation already in progress for store ${storeId}`);
+  }
+  rotatingStores.add(storeId);
+
+  try {
+    return await _rotateTenantPasswordInner(storeId);
+  } finally {
+    rotatingStores.delete(storeId);
+  }
+}
+
+async function _rotateTenantPasswordInner(storeId: string): Promise<string> {
   await connectDB();
 
   const tenantRecord = await TenantDatabase.findOne({ store_id: storeId, status: 'active' });
@@ -468,7 +484,7 @@ export async function rotateTenantPassword(storeId: string): Promise<string> {
 export async function testTenantConnection(storeId: string): Promise<boolean> {
   await connectDB();
 
-  const tenantRecord = await TenantDatabase.findOne({ store_id: storeId });
+  const tenantRecord = await TenantDatabase.findOne({ store_id: storeId, status: 'active' });
   if (!tenantRecord) return false;
 
   const credentials = await getTenantCredentials(storeId);
