@@ -24,7 +24,7 @@ const CURRENCIES = [
 
 const TIMEZONES = Intl.supportedValuesOf('timeZone');
 
-type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
+type FormStatus = 'idle' | 'submitting' | 'success' | 'error' | 'partial';
 
 export default function SetupPage() {
   const router = useRouter();
@@ -57,7 +57,17 @@ export default function SetupPage() {
 
       const data = await res.json();
 
-      if (!res.ok && res.status !== 207) {
+      if (res.status === 207) {
+        // Store created but database provisioning failed
+        setErrorMessage(
+          data.error ||
+            'Store created but database provisioning failed. Please try again.'
+        );
+        setStatus('partial');
+        return;
+      }
+
+      if (!res.ok) {
         setErrorMessage(data.error || 'Something went wrong. Please try again.');
         setStatus('error');
         return;
@@ -152,6 +162,13 @@ export default function SetupPage() {
             </div>
           )}
 
+          {/* Partial Success Message (store created, provisioning failed) */}
+          {status === 'partial' && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
+              {errorMessage || 'Store created but database setup failed. Please try again.'}
+            </div>
+          )}
+
           {/* Success Message */}
           {status === 'success' && (
             <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700">
@@ -165,7 +182,7 @@ export default function SetupPage() {
             disabled={status === 'submitting' || status === 'success'}
             className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {status === 'submitting' ? 'Creating Store...' : 'Create Store'}
+            {status === 'submitting' ? 'Creating Store...' : status === 'partial' ? 'Retry Setup' : 'Create Store'}
           </button>
         </form>
       </div>

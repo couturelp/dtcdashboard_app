@@ -96,6 +96,35 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
   });
 }
 
+/**
+ * Send an admin alert email for critical system events (e.g., provisioning failures).
+ * The recipient is configured via ADMIN_ALERT_EMAIL env var.
+ * If not configured, the alert is logged to console as a fallback.
+ */
+export async function sendAdminAlert(subject: string, details: string): Promise<void> {
+  const adminEmail = process.env.ADMIN_ALERT_EMAIL;
+  if (!adminEmail) {
+    console.error(`[Admin Alert] No ADMIN_ALERT_EMAIL configured. Subject: ${subject}. Details: ${details}`);
+    return;
+  }
+
+  await sendEmail({
+    to: adminEmail,
+    subject: `[DTC Dashboard Alert] ${subject}`,
+    text: `Admin Alert\n\n${subject}\n\nDetails:\n${details}\n\nTimestamp: ${new Date().toISOString()}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+        <h1 style="font-size: 24px; font-weight: 600; color: #b91c1c; margin-bottom: 16px;">Admin Alert</h1>
+        <h2 style="font-size: 18px; color: #111; margin-bottom: 12px;">${escapeHtml(subject)}</h2>
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <pre style="font-size: 14px; color: #444; white-space: pre-wrap; word-wrap: break-word; margin: 0;">${escapeHtml(details)}</pre>
+        </div>
+        <p style="font-size: 14px; color: #888;">Timestamp: ${new Date().toISOString()}</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const safeName = escapeHtml(name || 'there');
 

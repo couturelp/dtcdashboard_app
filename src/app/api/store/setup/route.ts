@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db/mongodb';
 import User from '@/lib/db/models/user';
 import Store from '@/lib/db/models/store';
 import { provisionTenantDatabase } from '@/lib/tenant-db';
+import { sendAdminAlert } from '@/lib/email';
 
 // Valid timezones (subset of IANA, covering major zones)
 const VALID_TIMEZONES = new Set(
@@ -14,6 +15,33 @@ const VALID_CURRENCIES = new Set([
   'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'CHF', 'JPY',
   'SEK', 'NOK', 'DKK', 'SGD', 'HKD', 'MXN', 'BRL', 'INR',
 ]);
+
+const MAX_PROVISION_RETRIES = 3;
+const INITIAL_BACKOFF_MS = 1000; // 1s, 2s, 4s
+
+/**
+ * Retry an async operation with exponential backoff.
+ * Returns the result on success, or throws the last error after all retries fail.
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number,
+  initialBackoffMs: number
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxRetries - 1) {
+        const backoffMs = initialBackoffMs * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      }
+    }
+  }
+  throw lastError;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,39 +87,72 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // If the user already has a store, check if setup is complete.
+    // If setup_complete, reject as duplicate. If not, allow retry of provisioning.
+    let store;
     if (user.store_id) {
-      return NextResponse.json({ error: 'Store already exists for this account' }, { status: 409 });
+      store = await Store.findById(user.store_id);
+      if (store && store.setup_complete) {
+        return NextResponse.json({ error: 'Store already exists for this account' }, { status: 409 });
+      }
+      if (!store) {
+        // Orphaned store_id -- clear it and create a new store below
+        user.store_id = null;
+        await user.save();
+      }
     }
 
-    // Create the store record
-    const store = new Store({
-      user_id: userId,
-      name: name.trim(),
-      currency: normalizedCurrency,
-      timezone: normalizedTimezone,
-      setup_complete: false,
-    });
+    if (!store) {
+      // Create the store record
+      store = new Store({
+        user_id: userId,
+        name: name.trim(),
+        currency: normalizedCurrency,
+        timezone: normalizedTimezone,
+        setup_complete: false,
+      });
 
-    await store.save();
+      await store.save();
 
-    // Link store to user
-    user.store_id = store._id;
-    await user.save();
+      // Link store to user
+      user.store_id = store._id;
+      await user.save();
+    }
 
-    // Provision the tenant database
+    // Provision the tenant database with automatic retry (exponential backoff)
     try {
-      await provisionTenantDatabase(store._id.toString());
+      await withRetry(
+        () => provisionTenantDatabase(store._id.toString()),
+        MAX_PROVISION_RETRIES,
+        INITIAL_BACKOFF_MS
+      );
 
       // Mark setup as complete
       store.setup_complete = true;
       await store.save();
     } catch (provisionError) {
-      // Provisioning failed -- store record exists but DB is not ready.
-      // Log for debugging and return a partial success so the user can retry.
-      console.error('[StoreSetup] Database provisioning failed:', provisionError);
+      // All retries exhausted -- store record exists but DB is not ready.
+      const errorMsg =
+        provisionError instanceof Error ? provisionError.message : 'Unknown error';
+      console.error(
+        `[StoreSetup] Database provisioning failed after ${MAX_PROVISION_RETRIES} attempts:`,
+        provisionError
+      );
+
+      // Notify admin of the failure
+      try {
+        await sendAdminAlert(
+          'Database provisioning failed',
+          `Store ID: ${store._id.toString()}\nStore Name: ${store.name}\nUser ID: ${userId}\nAttempts: ${MAX_PROVISION_RETRIES}\nError: ${errorMsg}`
+        );
+      } catch (alertError) {
+        console.error('[StoreSetup] Failed to send admin alert:', alertError);
+      }
+
       return NextResponse.json(
         {
-          message: 'Store created but database provisioning failed. You can retry from settings.',
+          error: 'Store created but database provisioning failed. Please try again later.',
+          partialSuccess: true,
           store: {
             id: store._id.toString(),
             name: store.name,
