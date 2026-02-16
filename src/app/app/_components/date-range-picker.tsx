@@ -39,6 +39,7 @@ export function DateRangePicker() {
   }
 
   function handleCustomChange(field: 'from' | 'to', value: string) {
+    if (!value) return; // ignore cleared inputs
     const current = { ...dateRange.current, [field]: value };
     updateUrl(current.from, current.to, 'custom', dateRange.compareOption);
   }
@@ -47,7 +48,8 @@ export function DateRangePicker() {
     updateUrl(dateRange.current.from, dateRange.current.to, dateRange.preset, option);
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">

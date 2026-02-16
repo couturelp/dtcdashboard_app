@@ -42,7 +42,7 @@ export async function fetchKpiSummary(
     [from, to]
   );
   const totalRevenue = parseFloat(orderRow?.rev) || 0;
-  const totalOrders = parseInt(orderRow?.cnt) || 0;
+  const totalOrders = parseInt(orderRow?.cnt, 10) || 0;
   const totalDiscounts = parseFloat(orderRow?.disc) || 0;
   const totalShipping = parseFloat(orderRow?.ship) || 0;
 
@@ -59,13 +59,17 @@ export async function fetchKpiSummary(
   ]);
   const totalAdSpend = (parseFloat(metaRow?.s) || 0) + (parseFloat(googleRow?.s) || 0);
 
-  // COGS: 0 for now (Part 06), Refunds: 0 for now (schema TBD)
+  // COGS: 0 for now (Part 06), Refunds: 0 for now (schema TBD),
+  // Transaction fees: 0 for now (Fivetran `transaction` table TBD),
+  // Operating expenses: 0 for now (needs MongoDB aggregation by date range)
   const totalRefunds = 0,
-    totalCogs = 0;
+    totalCogs = 0,
+    totalTransactionFees = 0,
+    totalOperatingExpenses = 0;
 
   const netRevenue = totalRevenue - totalDiscounts - totalRefunds;
-  const grossProfit = netRevenue - totalCogs - totalShipping;
-  const netProfit = grossProfit - totalAdSpend;
+  const grossProfit = netRevenue - totalCogs - totalShipping - totalTransactionFees;
+  const netProfit = grossProfit - totalAdSpend - totalOperatingExpenses;
 
   return {
     total_revenue: totalRevenue,
@@ -78,7 +82,7 @@ export async function fetchKpiSummary(
     total_ad_spend: totalAdSpend,
     gross_profit: grossProfit,
     net_profit: netProfit,
-    profit_margin: netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0,
+    profit_margin: netRevenue !== 0 ? (netProfit / netRevenue) * 100 : 0,
   };
 }
 

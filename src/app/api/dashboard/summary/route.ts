@@ -57,6 +57,6 @@ export async function GET(request: NextRequest) {
 }
 
 function calcChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
+  if (previous === 0) return current > 0 ? 100 : current < 0 ? -100 : 0;
   return ((current - previous) / Math.abs(previous)) * 100;
 }

@@ -177,5 +177,10 @@ function shiftYearSafe(date: Date, delta: number): Date {
 }
 
 function isValidDate(str: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str + 'T00:00:00').getTime());
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+  const d = new Date(str + 'T00:00:00');
+  if (isNaN(d.getTime())) return false;
+  // Reject overflow dates like Feb 31 → Mar 3: parsed date must match input components
+  const [y, m, day] = str.split('-').map(Number);
+  return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
 }
