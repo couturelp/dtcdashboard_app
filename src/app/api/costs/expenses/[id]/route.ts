@@ -6,6 +6,7 @@ import {
   isValidCurrency,
   isValidFrequency,
   isValidDate,
+  isValidName,
 } from '@/lib/costs/validation';
 import OperatingExpense from '@/lib/db/models/operating-expense';
 import { connectDB } from '@/lib/db/mongodb';
@@ -35,8 +36,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Only apply fields that are present in the body
     if (body.name !== undefined) {
-      if (typeof body.name !== 'string' || !body.name.trim()) {
-        return NextResponse.json({ error: 'Name cannot be empty.' }, { status: 400 });
+      if (!isValidName(body.name)) {
+        return NextResponse.json({ error: 'Name cannot be empty (max 500 characters).' }, { status: 400 });
       }
       updates.name = body.name.trim();
     }

@@ -29,8 +29,11 @@ export function isValidCurrency(code: unknown): boolean {
   return VALID_CURRENCIES.has(code.toUpperCase());
 }
 
+/** Upper bound for monetary amounts in cents ($10 million = 1,000,000,000 cents). */
+export const MAX_AMOUNT_CENTS = 1_000_000_000;
+
 export function isPositiveAmount(value: unknown): value is number {
-  return typeof value === 'number' && isFinite(value) && value >= 0 && Number.isInteger(value);
+  return typeof value === 'number' && isFinite(value) && value >= 0 && Number.isInteger(value) && value <= MAX_AMOUNT_CENTS;
 }
 
 export function isValidDate(value: unknown): value is string {
@@ -67,9 +70,16 @@ const DEFAULT_CATEGORIES = [
   'Other',
 ] as const;
 
+/** Maximum length for free-text fields (name, category). */
+export const MAX_TEXT_FIELD_LENGTH = 500;
+
+export function isValidName(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= MAX_TEXT_FIELD_LENGTH;
+}
+
 export function isValidCategory(value: unknown): boolean {
-  // Allow predefined + any custom string (non-empty)
-  return typeof value === 'string' && value.trim().length > 0;
+  // Allow predefined + any custom string (non-empty, bounded length)
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= MAX_TEXT_FIELD_LENGTH;
 }
 
 export { VALID_CURRENCIES, VALID_FREQUENCIES, VALID_RATE_TYPES, DEFAULT_CATEGORIES };

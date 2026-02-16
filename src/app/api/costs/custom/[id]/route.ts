@@ -6,6 +6,7 @@ import {
   isValidCurrency,
   isValidCategory,
   isValidDate,
+  isValidName,
 } from '@/lib/costs/validation';
 import CustomExpense from '@/lib/db/models/custom-expense';
 import { connectDB } from '@/lib/db/mongodb';
@@ -34,8 +35,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const updates: Record<string, unknown> = {};
 
     if (body.name !== undefined) {
-      if (typeof body.name !== 'string' || !body.name.trim()) {
-        return NextResponse.json({ error: 'Name cannot be empty.' }, { status: 400 });
+      if (!isValidName(body.name)) {
+        return NextResponse.json({ error: 'Name cannot be empty (max 500 characters).' }, { status: 400 });
       }
       updates.name = body.name.trim();
     }

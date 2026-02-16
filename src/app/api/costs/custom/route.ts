@@ -5,6 +5,7 @@ import {
   isValidCurrency,
   isValidCategory,
   isValidDate,
+  isValidName,
 } from '@/lib/costs/validation';
 import CustomExpense from '@/lib/db/models/custom-expense';
 import { connectDB } from '@/lib/db/mongodb';
@@ -76,8 +77,8 @@ export async function POST(request: NextRequest) {
     }
     const { name, category, amount, currency, expense_date } = body;
 
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
+    if (!isValidName(name)) {
+      return NextResponse.json({ error: 'Name is required (max 500 characters).' }, { status: 400 });
     }
     if (!isValidCategory(category)) {
       return NextResponse.json({ error: 'Category is required.' }, { status: 400 });

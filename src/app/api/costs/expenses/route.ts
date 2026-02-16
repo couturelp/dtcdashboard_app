@@ -5,6 +5,7 @@ import {
   isValidCurrency,
   isValidFrequency,
   isValidDate,
+  isValidName,
 } from '@/lib/costs/validation';
 import OperatingExpense from '@/lib/db/models/operating-expense';
 import { connectDB } from '@/lib/db/mongodb';
@@ -85,8 +86,8 @@ export async function POST(request: NextRequest) {
     const { name, amount, currency, frequency, start_date, end_date } = body;
 
     // Validation
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
+    if (!isValidName(name)) {
+      return NextResponse.json({ error: 'Name is required (max 500 characters).' }, { status: 400 });
     }
     if (!isPositiveAmount(amount) || amount === 0) {
       return NextResponse.json({ error: 'Amount must be a positive integer (in cents).' }, { status: 400 });

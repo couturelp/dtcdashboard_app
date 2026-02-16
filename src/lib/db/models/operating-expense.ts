@@ -17,7 +17,7 @@ export interface IOperatingExpense extends Document {
 const OperatingExpenseSchema = new Schema<IOperatingExpense>(
   {
     store_id: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
-    name: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true, maxlength: 500 },
     amount: {
       type: Number,
       required: true,

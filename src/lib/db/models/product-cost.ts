@@ -22,7 +22,7 @@ const ProductCostSchema = new Schema<IProductCost>(
     shopify_product_id: { type: String, default: null },
     shopify_variant_id: { type: String, default: null },
     sku: { type: String, default: null },
-    product_name: { type: String, required: true, trim: true },
+    product_name: { type: String, required: true, trim: true, maxlength: 500 },
     cost_per_unit: {
       type: Number,
       required: true,
