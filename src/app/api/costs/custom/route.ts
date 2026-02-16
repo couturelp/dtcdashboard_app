@@ -32,9 +32,15 @@ export async function GET(request: NextRequest) {
       filter.category = category;
     }
     if (from || to) {
+      if (from && !isValidDate(from)) {
+        return NextResponse.json({ error: 'Invalid "from" date. Use YYYY-MM-DD format.' }, { status: 400 });
+      }
+      if (to && !isValidDate(to)) {
+        return NextResponse.json({ error: 'Invalid "to" date. Use YYYY-MM-DD format.' }, { status: 400 });
+      }
       const dateFilter: Record<string, Date> = {};
-      if (from && isValidDate(from)) dateFilter.$gte = new Date(from + 'T00:00:00');
-      if (to && isValidDate(to)) dateFilter.$lte = new Date(to + 'T23:59:59.999');
+      if (from) dateFilter.$gte = new Date(from + 'T00:00:00');
+      if (to) dateFilter.$lte = new Date(to + 'T23:59:59.999');
       if (Object.keys(dateFilter).length > 0) {
         filter.expense_date = dateFilter;
       }
@@ -68,8 +74,8 @@ export async function POST(request: NextRequest) {
     if (!isValidCategory(category)) {
       return NextResponse.json({ error: 'Category is required.' }, { status: 400 });
     }
-    if (!isPositiveAmount(amount)) {
-      return NextResponse.json({ error: 'Amount must be a positive number.' }, { status: 400 });
+    if (!isPositiveAmount(amount) || amount === 0) {
+      return NextResponse.json({ error: 'Amount must be a positive integer (in cents).' }, { status: 400 });
     }
     if (currency && !isValidCurrency(currency)) {
       return NextResponse.json({ error: 'Invalid currency code.' }, { status: 400 });

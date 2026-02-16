@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
     }
-    if (!isPositiveAmount(amount)) {
-      return NextResponse.json({ error: 'Amount must be a positive number.' }, { status: 400 });
+    if (!isPositiveAmount(amount) || amount === 0) {
+      return NextResponse.json({ error: 'Amount must be a positive integer (in cents).' }, { status: 400 });
     }
     if (currency && !isValidCurrency(currency)) {
       return NextResponse.json({ error: 'Invalid currency code.' }, { status: 400 });

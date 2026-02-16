@@ -29,7 +29,7 @@ export function isValidCurrency(code: string): boolean {
 }
 
 export function isPositiveAmount(value: unknown): value is number {
-  return typeof value === 'number' && isFinite(value) && value >= 0;
+  return typeof value === 'number' && isFinite(value) && value >= 0 && Number.isInteger(value);
 }
 
 export function isValidDate(value: unknown): value is string {

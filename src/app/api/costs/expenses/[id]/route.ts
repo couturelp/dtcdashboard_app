@@ -35,8 +35,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updates.name = body.name.trim();
     }
     if (body.amount !== undefined) {
-      if (!isPositiveAmount(body.amount)) {
-        return NextResponse.json({ error: 'Amount must be a positive number.' }, { status: 400 });
+      if (!isPositiveAmount(body.amount) || body.amount === 0) {
+        return NextResponse.json({ error: 'Amount must be a positive integer (in cents).' }, { status: 400 });
       }
       updates.amount = body.amount;
     }
@@ -69,12 +69,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'No fields to update.' }, { status: 400 });
     }
 
-    // Cross-field validation: end_date must not be before start_date
-    if (body.start_date && body.end_date && body.end_date !== null && body.end_date < body.start_date) {
-      return NextResponse.json({ error: 'end_date must not be before start_date.' }, { status: 400 });
+    await connectDB();
+
+    // Cross-field validation: end_date must not be before start_date.
+    // Fetch the existing record so we can compare against the stored value
+    // when only one of start_date/end_date is being updated.
+    if (updates.start_date !== undefined || updates.end_date !== undefined) {
+      const existing = await OperatingExpense.findOne({ _id: id, store_id: storeId })
+        .select('start_date end_date')
+        .lean();
+      if (!existing) {
+        return NextResponse.json({ error: 'Expense not found.' }, { status: 404 });
+      }
+      const effectiveStart = (updates.start_date as Date) || existing.start_date;
+      const effectiveEnd = updates.end_date !== undefined ? (updates.end_date as Date | null) : existing.end_date;
+      if (effectiveEnd && effectiveStart && effectiveEnd < effectiveStart) {
+        return NextResponse.json({ error: 'end_date must not be before start_date.' }, { status: 400 });
+      }
     }
 
-    await connectDB();
     const expense = await OperatingExpense.findOneAndUpdate(
       { _id: id, store_id: storeId },
       { $set: updates },

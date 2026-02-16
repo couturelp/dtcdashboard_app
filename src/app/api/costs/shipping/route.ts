@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest) {
     if (rate_type !== 'shopify_default') {
       if (!isPositiveAmount(rate_value)) {
         return NextResponse.json(
-          { error: 'rate_value must be a positive number.' },
+          { error: 'rate_value must be a non-negative integer (in cents).' },
           { status: 400 }
         );
       }

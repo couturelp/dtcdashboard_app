@@ -40,8 +40,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updates.category = body.category.trim();
     }
     if (body.amount !== undefined) {
-      if (!isPositiveAmount(body.amount)) {
-        return NextResponse.json({ error: 'Amount must be a positive number.' }, { status: 400 });
+      if (!isPositiveAmount(body.amount) || body.amount === 0) {
+        return NextResponse.json({ error: 'Amount must be a positive integer (in cents).' }, { status: 400 });
       }
       updates.amount = body.amount;
     }
