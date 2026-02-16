@@ -23,7 +23,15 @@ const ProductCostSchema = new Schema<IProductCost>(
     shopify_variant_id: { type: String, default: null },
     sku: { type: String, default: null },
     product_name: { type: String, required: true, trim: true },
-    cost_per_unit: { type: Number, required: true, min: 0 }, // cents
+    cost_per_unit: {
+      type: Number,
+      required: true,
+      min: 0,
+      validate: {
+        validator: (v: number) => Number.isInteger(v),
+        message: 'cost_per_unit must be an integer (cents)',
+      },
+    },
     currency: { type: String, required: true, uppercase: true, default: 'USD' },
     source: { type: String, enum: ['csv', 'manual'], default: 'manual' },
     uploaded_at: { type: Date, default: Date.now },

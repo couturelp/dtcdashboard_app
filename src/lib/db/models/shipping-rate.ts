@@ -21,7 +21,16 @@ const ShippingRateSchema = new Schema<IShippingRate>(
       required: true,
       default: 'shopify_default',
     },
-    rate_value: { type: Number, required: true, min: 0, default: 0 }, // cents
+    rate_value: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+      validate: {
+        validator: (v: number) => Number.isInteger(v),
+        message: 'rate_value must be an integer (cents)',
+      },
+    },
     currency: { type: String, required: true, uppercase: true, default: 'USD' },
     conditions_json: { type: Schema.Types.Mixed, default: null },
   },
