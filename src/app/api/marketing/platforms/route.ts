@@ -3,9 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { parseDateRangeFromParams } from '@/lib/dashboard/date-utils';
 import { getStoreCurrency } from '@/lib/dashboard/summary-queries';
 import { fetchPlatformBreakdown } from '@/lib/marketing/marketing-queries';
+import { requireTier } from '@/lib/require-tier';
 
 export async function GET(request: NextRequest) {
   try {
+    // Platform breakdown is an advanced analytics feature (professional+ tier)
+    const tierDenied = await requireTier(request, 'professional');
+    if (tierDenied) return tierDenied;
+
     const storeId = request.headers.get('x-store-id');
     if (!storeId) {
       return NextResponse.json(

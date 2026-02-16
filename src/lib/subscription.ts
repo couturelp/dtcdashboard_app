@@ -29,7 +29,10 @@ export async function getActiveSubscription(
 
   // Past-due subscriptions get a grace period
   if (sub.status === 'past_due') {
-    const pastDueSince = sub.past_due_since?.getTime() ?? sub.updated_at?.getTime() ?? Date.now();
+    // Use past_due_since (set by handlePaymentFailed), fall back to updated_at.
+    // Default to epoch 0 if both are missing so grace period is treated as expired
+    // rather than granting indefinite access (Date.now() - Date.now() ≈ 0 would always pass).
+    const pastDueSince = sub.past_due_since?.getTime() ?? sub.updated_at?.getTime() ?? 0;
     if (Date.now() - pastDueSince <= GRACE_PERIOD_MS) {
       return sub; // Still within grace period
     }

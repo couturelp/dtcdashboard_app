@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db/mongodb';
-import { meetsMinimumTier, type TierName } from '@/lib/plans';
+import { meetsMinimumTier, getFeaturesForTier, type TierName, type TierFeatures } from '@/lib/plans';
 import { getUserTier } from '@/lib/subscription';
 
 /**
@@ -53,4 +53,24 @@ export async function requireTier(
     { error: 'upgrade_required', requiredTier: minimumTier },
     { status: 403 }
   );
+}
+
+/**
+ * Resolve the authenticated user's tier and feature set from the request.
+ *
+ * Returns `{ tier, features }` so route handlers can perform granular
+ * feature checks (e.g., comparing data source count against maxDataSources).
+ */
+export async function resolveUserFeatures(
+  request: NextRequest
+): Promise<{ tier: TierName; features: TierFeatures }> {
+  const storeId = request.headers.get('x-store-id');
+
+  if (!storeId) {
+    return { tier: 'free', features: getFeaturesForTier('free') };
+  }
+
+  await connectDB();
+  const tier = await getUserTier(storeId);
+  return { tier, features: getFeaturesForTier(tier) };
 }

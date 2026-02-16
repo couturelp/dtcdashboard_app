@@ -124,7 +124,7 @@ export function BillingSection() {
           </button>
         ) : (
           <a
-            href="/app/settings?billing=upgrade"
+            href="/pricing"
             className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
           >
             Upgrade Plan

@@ -30,18 +30,25 @@ export function PlatformBreakdown() {
   const [data, setData] = useState<PlatformsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [upgradeRequired, setUpgradeRequired] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     async function load() {
       setLoading(true);
       setError(null);
+      setUpgradeRequired(null);
       try {
         const res = await fetch(`/api/marketing/platforms?${searchParams.toString()}`, {
           signal: controller.signal,
         });
         if (!res.ok) {
-          throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+          const body = await res.json().catch(() => ({}));
+          if (res.status === 403 && body.error === 'upgrade_required') {
+            setUpgradeRequired(body.requiredTier || 'professional');
+            return;
+          }
+          throw new Error(body.error || `HTTP ${res.status}`);
         }
         setData(await res.json());
       } catch (err) {
@@ -64,6 +71,35 @@ export function PlatformBreakdown() {
       maximumFractionDigits: 0,
     }).format(v);
   const fmtNum = (v: number) => new Intl.NumberFormat('en-US').format(Math.round(v));
+
+  if (upgradeRequired) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">Platform Breakdown</h3>
+        </div>
+        <div className="px-6 py-10 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50 mb-4">
+            <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+          </div>
+          <h4 className="text-base font-semibold text-gray-900 mb-1">
+            Platform breakdown requires a {upgradeRequired} plan
+          </h4>
+          <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">
+            Upgrade to see per-platform ad performance, including spend allocation, ROAS, and conversion metrics for each connected platform.
+          </p>
+          <a
+            href="/pricing"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Upgrade Plan
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
