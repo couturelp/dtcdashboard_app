@@ -72,12 +72,18 @@ export async function POST(request: NextRequest) {
     } catch (processingError) {
       // Remove from idempotency set so Stripe retries can reprocess
       processedEvents.delete(event.id);
+      console.error(
+        `[Webhook] Failed to process event ${event.id} (type: ${event.type}):`,
+        processingError
+      );
       throw processingError;
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('[Webhook] Processing error:', error);
+    // Processing errors are already logged with event context in the inner catch block.
+    // Only log here for unexpected pre-processing errors (e.g., rawBody read failure).
+    console.error('[Webhook] Error:', error);
     return NextResponse.json({ error: 'Webhook processing failed.' }, { status: 500 });
   }
 }
@@ -149,6 +155,9 @@ async function handleSubscriptionUpsert(sub: Stripe.Subscription): Promise<void>
         current_period_end: firstItem ? new Date(firstItem.current_period_end * 1000) : new Date(),
         cancel_at_period_end: sub.cancel_at_period_end,
         canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+        // Clear past_due_since when subscription recovers to a non-past_due status.
+        // If Stripe reports past_due, the handlePaymentFailed handler sets past_due_since separately.
+        ...(sub.status !== 'past_due' ? { past_due_since: null } : {}),
       },
     },
     { upsert: true, new: true }
@@ -170,6 +179,7 @@ async function handleSubscriptionDeleted(sub: Stripe.Subscription): Promise<void
         status: 'canceled',
         canceled_at: sub.canceled_at ? new Date(sub.canceled_at * 1000) : new Date(),
         cancel_at_period_end: false,
+        past_due_since: null,
       },
     }
   );
@@ -190,7 +200,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   // Only update if subscription was previously past_due (recovery scenario)
   await Subscription.findOneAndUpdate(
     { stripe_subscription_id: subscriptionId, status: 'past_due' },
-    { $set: { status: 'active' } }
+    { $set: { status: 'active', past_due_since: null } }
   );
 
   console.log(`[Webhook] Payment succeeded for subscription ${subscriptionId}`);
@@ -204,9 +214,15 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const subscriptionId = getSubscriptionIdFromInvoice(invoice);
   if (!subscriptionId) return;
 
+  // Set status to past_due. Set past_due_since only if not already set (first failure
+  // in this cycle) to avoid resetting the grace period on repeated payment failures.
   await Subscription.findOneAndUpdate(
     { stripe_subscription_id: subscriptionId },
     { $set: { status: 'past_due' } }
+  );
+  await Subscription.findOneAndUpdate(
+    { stripe_subscription_id: subscriptionId, past_due_since: null },
+    { $set: { past_due_since: new Date() } }
   );
 
   // Send payment failure notification email

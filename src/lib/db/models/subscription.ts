@@ -18,6 +18,7 @@ export interface ISubscription extends Document {
   current_period_end: Date;
   cancel_at_period_end: boolean;
   canceled_at: Date | null;
+  past_due_since: Date | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -57,6 +58,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
     current_period_end: { type: Date, required: true },
     cancel_at_period_end: { type: Boolean, default: false },
     canceled_at: { type: Date, default: null },
+    past_due_since: { type: Date, default: null },
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
