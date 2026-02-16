@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import User from '@/lib/db/models/user';
 import { connectDB } from '@/lib/db/mongodb';
+import { getKnownPriceIds } from '@/lib/plans';
 import { createCheckoutSession, createStripeCustomer } from '@/lib/stripe';
+import { getActiveSubscription } from '@/lib/subscription';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -20,10 +22,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'priceId is required.' }, { status: 400 });
     }
 
+    // Validate priceId against configured prices to prevent arbitrary price ID usage
+    const knownPrices = getKnownPriceIds();
+    if (knownPrices.length > 0 && !knownPrices.includes(priceId)) {
+      return NextResponse.json({ error: 'Invalid plan selected.' }, { status: 400 });
+    }
+
     await connectDB();
     const user = await User.findById(userId).lean();
     if (!user) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    // Require a store before allowing checkout — subscriptions are linked to stores.
+    // Without a store_id, the webhook handler can't record the subscription.
+    if (!user.store_id) {
+      return NextResponse.json(
+        { error: 'Please complete store setup before subscribing.' },
+        { status: 400 }
+      );
+    }
+
+    // Prevent duplicate subscriptions — users with an active subscription
+    // should use the Customer Portal to change plans, not create a new checkout.
+    const existing = await getActiveSubscription(user.store_id.toString());
+    if (existing) {
+      return NextResponse.json(
+        { error: 'You already have an active subscription. Use "Manage Subscription" to change plans.' },
+        { status: 409 }
+      );
     }
 
     // Ensure user has a Stripe customer ID (backfill if missing from pre-Stripe registration)

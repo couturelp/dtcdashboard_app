@@ -123,8 +123,12 @@ async function handleSubscriptionUpsert(sub: Stripe.Subscription): Promise<void>
   const firstItem = sub.items.data[0];
   const priceId = firstItem?.price?.id || '';
 
+  // Upsert by store_id (one subscription per store, enforced by unique index).
+  // Using store_id instead of stripe_subscription_id ensures re-subscriptions
+  // after cancellation update the existing record rather than hitting a
+  // duplicate key error on the store_id unique index.
   await Subscription.findOneAndUpdate(
-    { stripe_subscription_id: sub.id },
+    { store_id: user.store_id },
     {
       $set: {
         store_id: user.store_id,
