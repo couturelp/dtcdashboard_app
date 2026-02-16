@@ -24,6 +24,14 @@ export async function GET(request: NextRequest) {
     const from = searchParams.get('from');
     const to = searchParams.get('to');
 
+    // Validate date params before connecting to DB
+    if (from && !isValidDate(from)) {
+      return NextResponse.json({ error: 'Invalid "from" date. Use YYYY-MM-DD format.' }, { status: 400 });
+    }
+    if (to && !isValidDate(to)) {
+      return NextResponse.json({ error: 'Invalid "to" date. Use YYYY-MM-DD format.' }, { status: 400 });
+    }
+
     await connectDB();
 
     // Build query filter
@@ -32,12 +40,6 @@ export async function GET(request: NextRequest) {
       filter.category = category;
     }
     if (from || to) {
-      if (from && !isValidDate(from)) {
-        return NextResponse.json({ error: 'Invalid "from" date. Use YYYY-MM-DD format.' }, { status: 400 });
-      }
-      if (to && !isValidDate(to)) {
-        return NextResponse.json({ error: 'Invalid "to" date. Use YYYY-MM-DD format.' }, { status: 400 });
-      }
       const dateFilter: Record<string, Date> = {};
       if (from) dateFilter.$gte = new Date(from + 'T00:00:00');
       if (to) dateFilter.$lte = new Date(to + 'T23:59:59.999');
@@ -65,7 +67,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+    }
     const { name, category, amount, currency, expense_date } = body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
