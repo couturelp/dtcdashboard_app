@@ -19,8 +19,36 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { searchParams } = request.nextUrl;
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+
+    // Validate date params if provided
+    if (from && !isValidDate(from)) {
+      return NextResponse.json({ error: 'Invalid "from" date. Use YYYY-MM-DD format.' }, { status: 400 });
+    }
+    if (to && !isValidDate(to)) {
+      return NextResponse.json({ error: 'Invalid "to" date. Use YYYY-MM-DD format.' }, { status: 400 });
+    }
+
     await connectDB();
-    const expenses = await OperatingExpense.find({ store_id: storeId })
+
+    // Build filter: return expenses active during the date range
+    const filter: Record<string, unknown> = { store_id: storeId };
+    if (from || to) {
+      // Active during range: start_date <= rangeEnd AND (end_date IS NULL OR end_date >= rangeStart)
+      if (to) {
+        filter.start_date = { $lte: new Date(to + 'T23:59:59.999') };
+      }
+      if (from) {
+        filter.$or = [
+          { end_date: null },
+          { end_date: { $gte: new Date(from + 'T00:00:00') } },
+        ];
+      }
+    }
+
+    const expenses = await OperatingExpense.find(filter)
       .sort({ start_date: -1 })
       .lean();
 
