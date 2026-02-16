@@ -42,7 +42,7 @@ export function HeroSection() {
               <span className="ml-3 text-xs text-gray-400">dtcdashboard.com/app</span>
             </div>
             <div className="p-6 sm:p-8 bg-gradient-to-br from-gray-50 to-white min-h-[280px] lg:min-h-[360px] flex items-center justify-center">
-              <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-lg">
                 {/* Mock KPI cards */}
                 {[
                   { label: 'Revenue', value: '$48,230' },
