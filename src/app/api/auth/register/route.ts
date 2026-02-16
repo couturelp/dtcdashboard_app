@@ -111,7 +111,11 @@ export async function POST(request: NextRequest) {
     try {
       const stripeCustomerId = await createStripeCustomer(email.toLowerCase(), user._id.toString());
       if (stripeCustomerId) {
-        await User.updateOne({ _id: user._id }, { $set: { stripe_customer_id: stripeCustomerId } });
+        // Atomic set-if-still-null to guard against duplicate Stripe customers
+        await User.findOneAndUpdate(
+          { _id: user._id, stripe_customer_id: null },
+          { $set: { stripe_customer_id: stripeCustomerId } }
+        );
       }
     } catch (stripeError) {
       console.error('[Register] Stripe customer creation failed:', stripeError);

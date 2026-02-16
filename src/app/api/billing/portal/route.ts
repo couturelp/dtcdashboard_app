@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import User from '@/lib/db/models/user';
 import { connectDB } from '@/lib/db/mongodb';
 import { createPortalSession } from '@/lib/stripe';
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ portalUrl });
   } catch (error) {
     console.error('[Billing Portal] Error:', error);
+    if (error instanceof Stripe.errors.StripeInvalidRequestError) {
+      return NextResponse.json(
+        { error: 'Unable to open billing portal. Please contact support.' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

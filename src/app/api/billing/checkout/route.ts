@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import User from '@/lib/db/models/user';
 import { connectDB } from '@/lib/db/mongodb';
 import { createCheckoutSession, createStripeCustomer } from '@/lib/stripe';
@@ -30,7 +31,19 @@ export async function POST(request: NextRequest) {
     if (!stripeCustomerId) {
       stripeCustomerId = await createStripeCustomer(user.email, user._id.toString());
       if (stripeCustomerId) {
-        await User.updateOne({ _id: user._id }, { $set: { stripe_customer_id: stripeCustomerId } });
+        // Atomic set-if-still-null to avoid orphaned Stripe customers on concurrent requests
+        const updated = await User.findOneAndUpdate(
+          { _id: user._id, stripe_customer_id: null },
+          { $set: { stripe_customer_id: stripeCustomerId } },
+          { new: true }
+        );
+        if (updated) {
+          stripeCustomerId = updated.stripe_customer_id!;
+        } else {
+          // Another request already set a customer ID — use that one instead
+          const freshUser = await User.findById(user._id).lean();
+          stripeCustomerId = freshUser?.stripe_customer_id ?? stripeCustomerId;
+        }
       } else {
         return NextResponse.json(
           { error: 'Unable to create billing account. Please try again.' },
@@ -49,6 +62,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ checkoutUrl });
   } catch (error) {
     console.error('[Billing Checkout] Error:', error);
+    if (error instanceof Stripe.errors.StripeInvalidRequestError) {
+      return NextResponse.json(
+        { error: 'Invalid billing request. Please check your plan selection.' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
