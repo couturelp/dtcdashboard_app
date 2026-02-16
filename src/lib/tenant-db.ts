@@ -540,20 +540,20 @@ export async function testTenantConnection(storeId: string): Promise<boolean> {
 
 const TENANT_INDEXES = {
   shopify: [
-    'CREATE INDEX IF NOT EXISTS idx_order_created_at ON "order"(created_at)',
-    'CREATE INDEX IF NOT EXISTS idx_order_line_order_id ON order_line(order_id)',
-    'CREATE INDEX IF NOT EXISTS idx_order_line_product_id ON order_line(product_id)',
-    'CREATE INDEX IF NOT EXISTS idx_product_variant_product_id ON product_variant(product_id)',
-    'CREATE INDEX IF NOT EXISTS idx_refund_order_id ON refund(order_id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_order_created_at ON "order"(created_at)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_order_line_order_id ON order_line(order_id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_order_line_product_id ON order_line(product_id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_product_variant_product_id ON product_variant(product_id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_refund_order_id ON refund(order_id)',
   ],
   metaAds: [
-    'CREATE INDEX IF NOT EXISTS idx_basic_ad_date ON basic_ad(date)',
-    'CREATE INDEX IF NOT EXISTS idx_basic_ad_ad_id ON basic_ad(ad_id)',
-    'CREATE INDEX IF NOT EXISTS idx_campaign_history_id ON campaign_history(id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basic_ad_date ON basic_ad(date)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basic_ad_ad_id ON basic_ad(ad_id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_campaign_history_id ON campaign_history(id)',
   ],
   googleAds: [
-    'CREATE INDEX IF NOT EXISTS idx_campaign_stats_date ON campaign_stats(date)',
-    'CREATE INDEX IF NOT EXISTS idx_campaign_stats_campaign_id ON campaign_stats(campaign_id)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_campaign_stats_date ON campaign_stats(date)',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_campaign_stats_campaign_id ON campaign_stats(campaign_id)',
   ],
 };
 
@@ -565,6 +565,12 @@ export async function createTenantIndexes(
   const tenantRecord = await TenantDatabase.findOne({ store_id: storeId, status: 'active' });
   if (!tenantRecord) {
     throw new Error(`No active tenant database found for store ${storeId}`);
+  }
+
+  // Skip if indexes were already created (idempotency guard).
+  // The caller can force re-creation by clearing indexes_created_at first.
+  if (tenantRecord.indexes_created_at) {
+    return { created: 0, skipped: 0 };
   }
 
   // Connect as master user to create indexes (DDL admin operation)
