@@ -21,7 +21,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ credentials });
   } catch (error) {
-    console.error('[Credentials GET] Error:', error);
+    console.error(
+      '[Credentials GET] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

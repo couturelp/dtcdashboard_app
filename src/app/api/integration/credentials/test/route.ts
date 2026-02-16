@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
       tested_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[Credentials Test] Error:', error);
+    console.error(
+      '[Credentials Test] Error:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
