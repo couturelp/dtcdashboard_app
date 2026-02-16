@@ -21,9 +21,27 @@ export const metadata: Metadata = {
   },
 };
 
+const WEBPAGE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'DTC Dashboard | Profit Analytics for Ecommerce Brands',
+  description:
+    'See exactly where your money goes. DTC Dashboard connects your Shopify store and ad platforms, combines them with your costs, and shows you real profit numbers.',
+  url: 'https://dtcdashboard.com',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'DTC Dashboard',
+    url: 'https://dtcdashboard.com',
+  },
+};
+
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBPAGE_SCHEMA) }}
+      />
       <HeroSection />
       <SocialProofBar />
       <ProblemSolutionSection />

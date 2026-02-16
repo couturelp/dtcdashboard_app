@@ -15,6 +15,37 @@ export const metadata: Metadata = {
   },
 };
 
+const WEBPAGE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Pricing | DTC Dashboard',
+  description:
+    'Simple, transparent pricing for DTC Dashboard. Start free, upgrade as your business grows. All plans include core profit analytics.',
+  url: 'https://dtcdashboard.com/pricing',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'DTC Dashboard',
+    url: 'https://dtcdashboard.com',
+  },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://dtcdashboard.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Pricing',
+        item: 'https://dtcdashboard.com/pricing',
+      },
+    ],
+  },
+};
+
 const FAQ_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -73,6 +104,10 @@ const FAQ_SCHEMA = {
 export default function PricingPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBPAGE_SCHEMA) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
