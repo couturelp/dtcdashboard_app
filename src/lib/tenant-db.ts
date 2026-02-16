@@ -164,13 +164,20 @@ export async function provisionTenantDatabase(storeId: string): Promise<ITenantD
       await master.query(`CREATE DATABASE "${dbName}" OWNER "${masterUser}"`);
     }
 
-    // Grant privileges on the tenant database
+    // Revoke default public CONNECT privilege on the new tenant database.
+    // PostgreSQL grants CONNECT to the "public" role on all databases by default,
+    // which means any Fivetran user from another tenant could connect to this database.
+    // Revoking CONNECT from "public" ensures only explicitly granted roles can connect.
+    try {
+      await master.query(`REVOKE CONNECT ON DATABASE "${dbName}" FROM PUBLIC`);
+    } catch {
+      // May fail if already revoked — non-fatal
+    }
+
+    // Grant privileges on the tenant database to its designated user
     await master.query(`GRANT ALL PRIVILEGES ON DATABASE "${dbName}" TO "${username}"`);
 
-    // Revoke default public CONNECT privilege on other databases.
-    // By default, PostgreSQL grants CONNECT to the "public" role on all databases,
-    // which means any login role can connect to any database. Revoking CONNECT
-    // from the tenant user on the main/default databases ensures tenant isolation.
+    // Also revoke this tenant's user from the default postgres database
     try {
       await master.query(`REVOKE ALL ON DATABASE postgres FROM "${username}"`);
     } catch {
