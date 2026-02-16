@@ -611,7 +611,10 @@ export async function createTenantIndexes(
       created++;
     } catch (error) {
       // IF NOT EXISTS should prevent errors, but log just in case
-      console.warn(`[TenantDB] Index creation warning for store ${storeId}:`, error);
+      console.warn(
+        `[TenantDB] Index creation warning for store ${storeId}:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       skipped++;
     }
   }

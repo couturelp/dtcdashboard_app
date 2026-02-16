@@ -32,10 +32,11 @@ export async function fetchKpiSummary(
     }
   }
 
-  // Revenue + orders from Shopify "order" table
+  // Revenue + orders + shipping from Shopify "order" table (single scan)
   const orderRow = await safeQuery(
     `SELECT COALESCE(SUM(CAST(total_price AS NUMERIC)),0) AS rev, COUNT(*) AS cnt,
-            COALESCE(SUM(CAST(total_discounts AS NUMERIC)),0) AS disc
+            COALESCE(SUM(CAST(total_discounts AS NUMERIC)),0) AS disc,
+            COALESCE(SUM(CAST(total_shipping_price_set->'shop_money'->>'amount' AS NUMERIC)),0) AS ship
      FROM "order" WHERE created_at >= $1::timestamp
        AND created_at < ($2::date + INTERVAL '1 day')::timestamp AND cancelled_at IS NULL`,
     [from, to]
@@ -43,25 +44,19 @@ export async function fetchKpiSummary(
   const totalRevenue = parseFloat(orderRow?.rev) || 0;
   const totalOrders = parseInt(orderRow?.cnt) || 0;
   const totalDiscounts = parseFloat(orderRow?.disc) || 0;
+  const totalShipping = parseFloat(orderRow?.ship) || 0;
 
-  // Shipping from order table (total_shipping_price_set varies by Fivetran schema)
-  const shipRow = await safeQuery(
-    `SELECT COALESCE(SUM(CAST(total_shipping_price_set->'shop_money'->>'amount' AS NUMERIC)),0) AS ship
-     FROM "order" WHERE created_at >= $1::timestamp
-       AND created_at < ($2::date + INTERVAL '1 day')::timestamp AND cancelled_at IS NULL`,
-    [from, to]
-  );
-  const totalShipping = parseFloat(shipRow?.ship) || 0;
-
-  // Ad spend: Meta (basic_ad.spend) + Google (campaign_stats.cost_micros)
-  const metaRow = await safeQuery(
-    `SELECT COALESCE(SUM(spend),0) AS s FROM basic_ad WHERE date>=$1::date AND date<=$2::date`,
-    [from, to]
-  );
-  const googleRow = await safeQuery(
-    `SELECT COALESCE(SUM(cost_micros/1000000.0),0) AS s FROM campaign_stats WHERE date>=$1::date AND date<=$2::date`,
-    [from, to]
-  );
+  // Ad spend: Meta + Google (independent tables, run in parallel)
+  const [metaRow, googleRow] = await Promise.all([
+    safeQuery(
+      `SELECT COALESCE(SUM(spend),0) AS s FROM basic_ad WHERE date>=$1::date AND date<=$2::date`,
+      [from, to]
+    ),
+    safeQuery(
+      `SELECT COALESCE(SUM(cost_micros/1000000.0),0) AS s FROM campaign_stats WHERE date>=$1::date AND date<=$2::date`,
+      [from, to]
+    ),
+  ]);
   const totalAdSpend = (parseFloat(metaRow?.s) || 0) + (parseFloat(googleRow?.s) || 0);
 
   // COGS: 0 for now (Part 06), Refunds: 0 for now (schema TBD)

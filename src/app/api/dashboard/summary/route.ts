@@ -14,16 +14,15 @@ export async function GET(request: NextRequest) {
     }
 
     const { current, comparison } = parseDateRangeFromParams(request.nextUrl.searchParams);
-    const currency = await getStoreCurrency(storeId);
 
-    // Fetch current period KPIs
-    const currentKpis = await fetchKpiSummary(storeId, current.from, current.to);
-
-    // Fetch comparison period KPIs if requested
-    let comparisonKpis: Awaited<ReturnType<typeof fetchKpiSummary>> | null = null;
-    if (comparison) {
-      comparisonKpis = await fetchKpiSummary(storeId, comparison.from, comparison.to);
-    }
+    // Fetch currency, current KPIs, and comparison KPIs in parallel
+    const [currency, currentKpis, comparisonKpis] = await Promise.all([
+      getStoreCurrency(storeId),
+      fetchKpiSummary(storeId, current.from, current.to),
+      comparison
+        ? fetchKpiSummary(storeId, comparison.from, comparison.to)
+        : Promise.resolve(null),
+    ]);
 
     // Calculate percentage changes
     const changes = comparisonKpis

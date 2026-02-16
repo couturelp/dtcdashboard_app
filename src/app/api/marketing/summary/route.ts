@@ -18,14 +18,15 @@ export async function GET(request: NextRequest) {
     }
 
     const { current, comparison } = parseDateRangeFromParams(request.nextUrl.searchParams);
-    const currency = await getStoreCurrency(storeId);
 
-    const currentKpis = await fetchMarketingKpiSummary(storeId, current.from, current.to);
-
-    let comparisonKpis: MarketingKpiSummary | null = null;
-    if (comparison) {
-      comparisonKpis = await fetchMarketingKpiSummary(storeId, comparison.from, comparison.to);
-    }
+    // Fetch currency, current KPIs, and comparison KPIs in parallel
+    const [currency, currentKpis, comparisonKpis] = await Promise.all([
+      getStoreCurrency(storeId),
+      fetchMarketingKpiSummary(storeId, current.from, current.to),
+      comparison
+        ? fetchMarketingKpiSummary(storeId, comparison.from, comparison.to)
+        : Promise.resolve(null),
+    ]);
 
     const changes = comparisonKpis
       ? {

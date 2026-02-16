@@ -15,9 +15,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { current } = parseDateRangeFromParams(request.nextUrl.searchParams);
-    const currency = await getStoreCurrency(storeId);
 
-    const platforms = await fetchPlatformBreakdown(storeId, current.from, current.to);
+    // Fetch currency and platform breakdown in parallel
+    const [currency, platforms] = await Promise.all([
+      getStoreCurrency(storeId),
+      fetchPlatformBreakdown(storeId, current.from, current.to),
+    ]);
 
     return NextResponse.json({
       platforms,
