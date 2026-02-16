@@ -271,13 +271,22 @@ export async function deleteTenantDatabase(storeId: string): Promise<void> {
 
 // ----- Connection pooling -----
 
+/**
+ * Get a connection pool for a tenant database.
+ * Uses per-tenant credentials by default for proper database-level isolation.
+ * For admin operations (DDL, index creation), pass master credentials explicitly.
+ */
 export function getTenantConnection(
   storeId: string,
   dbName: string,
   host: string,
-  port: number
+  port: number,
+  credentials?: { user: string; password: string }
 ): Pool {
-  const existing = pools.get(storeId);
+  // Use a separate cache key for master vs tenant connections to the same database
+  const cacheKey = credentials ? `${storeId}:master` : storeId;
+
+  const existing = pools.get(cacheKey);
   if (existing) {
     existing.lastUsed = Date.now();
     return existing.pool;
@@ -286,8 +295,8 @@ export function getTenantConnection(
   const pool = new Pool({
     host,
     port,
-    user: process.env.RDS_MASTER_USER,
-    password: process.env.RDS_MASTER_PASSWORD,
+    user: credentials?.user ?? process.env.RDS_MASTER_USER,
+    password: credentials?.password ?? process.env.RDS_MASTER_PASSWORD,
     database: dbName,
     max: 5,
     idleTimeoutMillis: 30_000,
@@ -299,17 +308,20 @@ export function getTenantConnection(
     console.error(`[TenantDB] Idle client error for store ${storeId}:`, err.message);
   });
 
-  pools.set(storeId, { pool, lastUsed: Date.now() });
+  pools.set(cacheKey, { pool, lastUsed: Date.now() });
   startPoolCleanup();
 
   return pool;
 }
 
 export async function closeTenantConnection(storeId: string): Promise<void> {
-  const entry = pools.get(storeId);
-  if (entry) {
-    await entry.pool.end();
-    pools.delete(storeId);
+  // Close both tenant-credential and master-credential pools for this store
+  for (const key of [storeId, `${storeId}:master`]) {
+    const entry = pools.get(key);
+    if (entry) {
+      await entry.pool.end();
+      pools.delete(key);
+    }
   }
 }
 
@@ -325,11 +337,21 @@ export async function queryTenant(
     throw new Error(`No active tenant database found for store ${storeId}`);
   }
 
+  // Decrypt per-tenant credentials for database-level isolation.
+  // Application queries run as the tenant user, not the RDS master,
+  // so PostgreSQL enforces that this connection can only access its own database.
+  const tenantPassword = decrypt({
+    ciphertext: tenantRecord.password_ciphertext,
+    iv: tenantRecord.password_iv,
+    authTag: tenantRecord.password_auth_tag,
+  });
+
   const pool = getTenantConnection(
     storeId,
     tenantRecord.database_name,
     tenantRecord.database_host,
-    tenantRecord.database_port
+    tenantRecord.database_port,
+    { user: tenantRecord.fivetran_username, password: tenantPassword }
   );
 
   return pool.query(sql, params);
@@ -474,12 +496,16 @@ export async function createTenantIndexes(
     throw new Error(`No active tenant database found for store ${storeId}`);
   }
 
-  // Connect as master user to create indexes (Fivetran user may lack permissions)
+  // Connect as master user to create indexes (DDL admin operation)
   const pool = getTenantConnection(
     storeId,
     tenantRecord.database_name,
     tenantRecord.database_host,
-    tenantRecord.database_port
+    tenantRecord.database_port,
+    {
+      user: process.env.RDS_MASTER_USER!,
+      password: process.env.RDS_MASTER_PASSWORD!,
+    }
   );
 
   let created = 0;
