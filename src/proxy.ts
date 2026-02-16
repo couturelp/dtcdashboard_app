@@ -78,6 +78,27 @@ const PUBLIC_PAGE_ROUTES = ['/app/login', '/app/register'];
 // API routes that don't require authentication
 const PUBLIC_API_ROUTES = ['/api/auth', '/api/health', '/api/billing/webhook'];
 
+// App pages that authenticated users can access without a store
+const NO_STORE_ALLOWED_PAGES = ['/app/setup', '/app/settings'];
+
+/**
+ * Check if an authenticated user without a store should be redirected to setup.
+ * Returns a redirect response if so, or null if they should proceed.
+ */
+function maybeRedirectToSetup(
+  pathname: string,
+  storeId: string | null,
+  isApiRoute: boolean,
+  request: NextRequest
+): NextResponse | null {
+  if (storeId) return null; // User has a store
+  if (isApiRoute) return null; // Don't redirect API calls
+  if (!pathname.startsWith('/app')) return null; // Only app routes
+  if (NO_STORE_ALLOWED_PAGES.some((p) => pathname.startsWith(p))) return null; // Allowed without store
+
+  return NextResponse.redirect(new URL('/app/setup', request.url));
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -114,6 +135,15 @@ export async function proxy(request: NextRequest) {
         }
         return NextResponse.redirect(new URL('/app', request.url));
       }
+
+      // Redirect to store setup if user has no store
+      const setupRedirect = maybeRedirectToSetup(
+        pathname,
+        (payload.store_id as string) || null,
+        isApiRoute,
+        request
+      );
+      if (setupRedirect) return setupRedirect;
 
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-user-id', payload.user_id as string);
@@ -156,6 +186,15 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/app', request.url));
     }
 
+    // Redirect to store setup if user has no store
+    const setupRedirect = maybeRedirectToSetup(
+      pathname,
+      (payload.store_id as string) || null,
+      isApiRoute,
+      request
+    );
+    if (setupRedirect) return setupRedirect;
+
     // Inject user info into request headers so API route handlers can read them.
     // Must use NextResponse.next({ request: { headers } }) to modify the
     // *request* forwarded to the route handler — setting headers on the
@@ -184,6 +223,15 @@ export async function proxy(request: NextRequest) {
         }
         return NextResponse.redirect(new URL('/app', request.url));
       }
+
+      // Redirect to store setup if user has no store
+      const setupRedirect = maybeRedirectToSetup(
+        pathname,
+        (payload.store_id as string) || null,
+        isApiRoute,
+        request
+      );
+      if (setupRedirect) return setupRedirect;
 
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-user-id', payload.user_id as string);
