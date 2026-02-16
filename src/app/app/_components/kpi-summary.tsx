@@ -38,13 +38,24 @@ export function KpiSummary() {
     return () => controller.abort();
   }, [searchParams]);
 
-  const fmtCur = (v: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: data?.currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(v);
+  const fmtCur = (v: number) => {
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: data?.currency || 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(v);
+    } catch {
+      // Fallback if currency code is invalid (e.g., malformed store data)
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(v);
+    }
+  };
   const fmtNum = (v: number) => new Intl.NumberFormat('en-US').format(v);
 
   if (error)
@@ -65,7 +76,7 @@ export function KpiSummary() {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {kpis.map((kpi) => (
         <KpiCard
           key={kpi.label}

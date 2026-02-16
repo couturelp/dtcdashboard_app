@@ -48,10 +48,17 @@ export async function GET(request: NextRequest) {
       comparison_period: comparison,
     });
   } catch (error) {
-    console.error(
-      '[Dashboard Summary] Error:',
-      error instanceof Error ? error.message : 'Unknown error'
-    );
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[Dashboard Summary] Error:', message);
+
+    // Surface a user-friendly message when the tenant database isn't set up yet
+    if (message.includes('No active tenant database')) {
+      return NextResponse.json(
+        { error: 'Data not yet available. Please connect your Shopify store first.' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

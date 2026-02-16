@@ -23,11 +23,17 @@ export async function fetchKpiSummary(
   from: string,
   to: string
 ): Promise<KpiSummary> {
-  // Helper: run query, return null on failure (table may not exist yet)
+  // Helper: run query, return null on table-level failure (table may not exist yet).
+  // Re-throws connection-level errors so the caller can surface them properly.
   async function safeQuery(sql: string, params: unknown[]) {
     try {
       return (await queryTenant(storeId, sql, params)).rows[0];
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      // Propagate connection / auth errors — only swallow "relation does not exist" etc.
+      if (message.includes('No active tenant database') || message.includes('ECONNREFUSED')) {
+        throw err;
+      }
       return null;
     }
   }
